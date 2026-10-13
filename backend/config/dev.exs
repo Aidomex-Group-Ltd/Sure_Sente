@@ -1,8 +1,10 @@
 import Config
 
-# Configure your database (DATABASE_URL via backend/.env; falls back to local dev DB)
+# Configure your database (DATABASE_URL via backend/.env; see bin/setup).
+# The fallback uses the least-privileged dev role without a password and only
+# works if trust auth is configured; normally DATABASE_URL supplies credentials.
 config :backend, Backend.Repo,
-  url: System.get_env("DATABASE_URL", "ecto://tugeza:tugeza@127.0.0.1:5434/tugeza_dev"),
+  url: System.get_env("DATABASE_URL", "ecto://sure_sente_app@127.0.0.1:5434/sure_sente_dev"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

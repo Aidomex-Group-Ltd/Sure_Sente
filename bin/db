@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Start the project-owned Postgres (idempotent). Never touches the system
+# cluster on 5432 or other projects. Fails if the data dir is missing
+# (run bin/setup first) — never runs initdb here.
+set -euo pipefail
+# shellcheck disable=SC1091
+source "$(dirname "$0")/common.sh"
+mkdir -p "$PG_SOCKET_DIR"
+
+if [ ! -d "$PGDATA_DIR" ]; then
+  echo "ERROR: data dir $PGDATA_DIR missing. Run bin/setup first." >&2
+  exit 1
+fi
+
+if pg_isready -h "$PG_SOCKET_DIR" -p "$PG_PORT" -q 2>/dev/null; then
+  echo "postgres already accepting connections on $PG_PORT"
+  exit 0
+fi
+
+pg_ctl -D "$PGDATA_DIR" -o "-p $PG_PORT -k $PG_SOCKET_DIR" -l "$PG_LOG" start
+
+# Bounded readiness check (no arbitrary sleep).
+for _ in $(seq 1 30); do
+  if pg_isready -h "$PG_SOCKET_DIR" -p "$PG_PORT" -q 2>/dev/null; then
+    echo "postgres accepting connections on $PG_PORT"
+    exit 0
+  fi
+  sleep 1
+done
+echo "ERROR: postgres did not become ready. See $PG_LOG" >&2
+exit 1

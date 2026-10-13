@@ -29,7 +29,7 @@ export function Auth() {
       const t = d?.token || d?.data?.token || "";
       token.set(t);
       const u = d?.user || d?.data?.user || {};
-      if (u.display_name || u.name) localStorage.setItem("tugeza_name", String(u.display_name || u.name));
+      if (u.display_name || u.name) localStorage.setItem("sure_sente_name", String(u.display_name || u.name));
       const p = pendingGet();
       pendingSet(null);
       if (p?.returnTo && p.returnTo !== "/") { setNotice(`Welcome — review and confirm to continue: ${p.action || "your action"}`); setTimeout(() => nav(p.returnTo), 900); }
@@ -131,10 +131,10 @@ export function Me() {
       </div></Layout>
     );
   }
-  const save = async () => { try { await post("/me/profile", p); localStorage.setItem("tugeza_name", p.name); setNote("Profile saved."); } catch (e) { setNote(e instanceof Error ? e.message : "failed"); } };
+  const save = async () => { try { await post("/me/profile", p); localStorage.setItem("sure_sente_name", p.name); setNote("Profile saved."); } catch (e) { setNote(e instanceof Error ? e.message : "failed"); } };
   const out = () => {
-    token.clear(); localStorage.removeItem("tugeza_profile");
-    Object.keys(localStorage).forEach((k) => { if (k.startsWith("tugeza_draft_private")) localStorage.removeItem(k); });
+    token.clear(); localStorage.removeItem("sure_sente_profile");
+    Object.keys(localStorage).forEach((k) => { if (k.startsWith("sure_sente_draft_private")) localStorage.removeItem(k); });
     nav("/");
   };
   return (

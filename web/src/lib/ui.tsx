@@ -3,8 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { token, online } from "../lib/api";
 
 export const TOWNS = ["Kampala", "Ntinda", "Entebbe", "Jinja"];
-export const townGet = () => localStorage.getItem("tugeza_town") || "Ntinda";
-export const townSet = (t: string) => localStorage.setItem("tugeza_town", t);
+export const townGet = () => localStorage.getItem("sure_sente_town") || "Ntinda";
+export const townSet = (t: string) => localStorage.setItem("sure_sente_town", t);
 export const ALLOWLIST = ["/", "/find", "/services", "/deals", "/post", "/messages", "/me", "/broker", "/applications"];
 export function allowReturnTo(r: string | null): string {
   if (!r) return "/";
@@ -15,8 +15,8 @@ export function allowReturnTo(r: string | null): string {
   return "/";
 }
 export type Pending = { returnTo: string; action: string; listingId?: string; draft?: Record<string, unknown> };
-export const pendingGet = (): Pending | null => { try { return JSON.parse(localStorage.getItem("tugeza_pending") || "null"); } catch { return null; } };
-export const pendingSet = (p: Pending | null) => { if (!p) localStorage.removeItem("tugeza_pending"); else localStorage.setItem("tugeza_pending", JSON.stringify(p)); };
+export const pendingGet = (): Pending | null => { try { return JSON.parse(localStorage.getItem("sure_sente_pending") || "null"); } catch { return null; } };
+export const pendingSet = (p: Pending | null) => { if (!p) localStorage.removeItem("sure_sente_pending"); else localStorage.setItem("sure_sente_pending", JSON.stringify(p)); };
 export function sanitizeDraft(d?: Record<string, unknown>): Record<string, unknown> | undefined {
   if (!d) return undefined;
   const out: Record<string, unknown> = {};
@@ -124,12 +124,12 @@ export function TownPill() {
 export function Layout({ children, guest }: { children: ReactNode; guest?: boolean }) {
   const nav = useNavigate(); const loc = useLocation();
   const logged = !!token.get();
-  const name = localStorage.getItem("tugeza_name") || "Friend";
+  const name = localStorage.getItem("sure_sente_name") || "Friend";
   const cur = (p: string) => (loc.pathname === p ? "page" : undefined);
   const out = () => {
     token.clear();
-    localStorage.removeItem("tugeza_profile");
-    Object.keys(localStorage).forEach((k) => { if (k.startsWith("tugeza_draft_private")) localStorage.removeItem(k); });
+    localStorage.removeItem("sure_sente_profile");
+    Object.keys(localStorage).forEach((k) => { if (k.startsWith("sure_sente_draft_private")) localStorage.removeItem(k); });
     nav("/");
   };
   return (

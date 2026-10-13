@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Stop only project-owned processes: the beam VM whose cwd is backend/,
+# and our data-dir Postgres. Never kills unrelated processes.
+set -euo pipefail
+# shellcheck disable=SC1091
+source "$(dirname "$0")/common.sh"
+
+for pid in $(pgrep -f "mix phx.server" || true); do
+  if [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$BACKEND_DIR" ]; then
+    kill "$pid" && echo "stopped backend (pid $pid)"
+  fi
+done
+
+for pid in $(pgrep -f "vite" || true); do
+  if [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$SURE_SENTE_ROOT/web" ]; then
+    kill "$pid" && echo "stopped frontend (pid $pid)"
+  fi
+done
+
+if [ -d "$PGDATA_DIR" ] && pg_isready -h "$PG_SOCKET_DIR" -p "$PG_PORT" -q 2>/dev/null; then
+  if pg_ctl -D "$PGDATA_DIR" status >/dev/null 2>&1; then
+    pg_ctl -D "$PGDATA_DIR" stop -m fast && echo "stopped project postgres"
+  else
+    echo "postgres on :$PG_PORT is not ours; leaving it alone"
+  fi
+fi
+echo "done"

@@ -10,8 +10,8 @@ export PATH=/usr/lib/postgresql/14/bin:$PATH
 initdb -D /tmp/opencode/pgdata -E UTF8   # first time only
 pg_ctl -D /tmp/opencode/pgdata -o "-p 5434 -k /tmp/opencode" -l /tmp/opencode/pg.log start
 psql -h /tmp/opencode -p 5434 -U aidomex -d postgres \
-  -c "CREATE ROLE tugeza LOGIN PASSWORD 'tugeza' SUPERUSER CREATEDB;" \
-  -c "CREATE DATABASE tugeza_dev OWNER tugeza;"
+  -c "CREATE ROLE sure_sente LOGIN PASSWORD 'sure_sente' SUPERUSER CREATEDB;" \
+  -c "CREATE DATABASE sure_sente_dev OWNER sure_sente;"
 ```
 
 ## 2. Backend
@@ -56,6 +56,6 @@ overseas-recruitment) rejected server-side with 422.
 ## Backup / restore
 
 ```bash
-pg_dump -h /tmp/opencode -p 5434 -U tugeza backend_dev > backup.sql
-psql -h /tmp/opencode -p 5434 -U tugeza backend_dev < backup.sql
+pg_dump -h /tmp/opencode -p 5434 -U sure_sente backend_dev > backup.sql
+psql -h /tmp/opencode -p 5434 -U sure_sente backend_dev < backup.sql
 ```

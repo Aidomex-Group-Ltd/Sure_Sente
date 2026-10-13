@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Start the Vite frontend (foreground).
+set -euo pipefail
+# shellcheck disable=SC1091
+source "$(dirname "$0")/common.sh"
+cd "$SURE_SENTE_ROOT/web"
+[ -d node_modules ] || npm install
+exec npm run dev

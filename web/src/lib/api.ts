@@ -1,8 +1,8 @@
 const BASE = "http://localhost:4000/api/v1";
 export const token = {
-  get: () => localStorage.getItem("tugeza_token") || "",
-  set: (t: string) => localStorage.setItem("tugeza_token", t),
-  clear: () => localStorage.removeItem("tugeza_token"),
+  get: () => localStorage.getItem("sure_sente_token") || "",
+  set: (t: string) => localStorage.setItem("sure_sente_token", t),
+  clear: () => localStorage.removeItem("sure_sente_token"),
 };
 export const online = () => navigator.onLine;
 function uid() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
@@ -29,11 +29,11 @@ export const fmtUGX = (minor?: number | null) =>
   minor == null ? "—" : `UGX ${Number(minor).toLocaleString()}`;
 // localStorage draft queue for offline note
 export function queueDraft(kind: string, payload: unknown) {
-  const q = JSON.parse(localStorage.getItem("tugeza_queue") || "[]");
+  const q = JSON.parse(localStorage.getItem("sure_sente_queue") || "[]");
   q.push({ kind, payload, at: new Date().toISOString() });
-  localStorage.setItem("tugeza_queue", JSON.stringify(q));
+  localStorage.setItem("sure_sente_queue", JSON.stringify(q));
 }
 export function queueCount() {
-  try { return (JSON.parse(localStorage.getItem("tugeza_queue") || "[]") as unknown[]).length; } catch { return 0; }
+  try { return (JSON.parse(localStorage.getItem("sure_sente_queue") || "[]") as unknown[]).length; } catch { return 0; }
 }
 export type Listing = Record<string, unknown> & { id: string; title?: string; kind?: string; area?: string; pay_minor?: number; price_minor?: number; commission_minor?: number; commission_rule?: string; commission_basis?: string; status?: string; category_id?: string; description?: string };

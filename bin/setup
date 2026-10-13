@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# One-time (idempotent) local setup: Postgres data dir, roles/database,
+# backend .env secrets, deps, database, migrations, pilot category seeds.
+# Safe to re-run: never re-runs initdb on an existing dir, never drops data.
+set -euo pipefail
+# shellcheck disable=SC1091
+source "$(dirname "$0")/common.sh"
+
+if [ ! -d "$PGDATA_DIR" ]; then
+  mkdir -p "$(dirname "$PGDATA_DIR")" "$PG_SOCKET_DIR"
+  initdb -D "$PGDATA_DIR" -E UTF8
+  echo "initialised new cluster at $PGDATA_DIR"
+fi
+
+"$(dirname "$0")/db"
+
+# Admin access uses the local superuser role over the project socket.
+if ! psql -h "$PG_SOCKET_DIR" -p "$PG_PORT" -U sure_sente -d sure_sente_dev -tc "SELECT 1;" >/dev/null 2>&1; then
+  psql -h "$PG_SOCKET_DIR" -p "$PG_PORT" -U sure_sente -d postgres \
+    -c "CREATE ROLE sure_sente LOGIN PASSWORD 'sure_sente' SUPERUSER CREATEDB;" \
+    -c "CREATE DATABASE sure_sente_dev OWNER sure_sente;"
+fi
+psql -h "$PG_SOCKET_DIR" -p "$PG_PORT" -U sure_sente -d sure_sente_dev \
+  -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;" >/dev/null
+
+# Least-privileged runtime role (password lives only in backend/.env).
+APP_PW="$(python3 -c "import re;m=re.search(r'sure_sente_app:([^@]+)@', open('$BACKEND_DIR/.env').read());print(m.group(1) if m else '')" 2>/dev/null || true)"
+if [ -z "${APP_PW:-}" ]; then
+  APP_PW="$(openssl rand -base64 24 | tr -d '/+=' | head -c 24)"
+  export APP_PW
+  python3 <<'EOF'
+import os, re, secrets
+p = 'backend/.env'
+t = open(p).read()
+t = re.sub(r'^DATABASE_URL=.*$', 'DATABASE_URL=ecto://sure_sente_app:' + os.environ['APP_PW'] + '@127.0.0.1:5434/sure_sente_dev', t, flags=re.M)
+for key, n in (('SECRET_KEY_BASE', 64), ('JWT_SECRET', 64), ('LIVE_SIGNING_SALT', 32)):
+    t = re.sub(rf'^{key}=$', key + '=' + secrets.token_urlsafe(n), t, flags=re.M)
+open(p, 'w').write(t if t.endswith('\n') else t + '\n')
+EOF
+  unset APP_PW
+  APP_PW="$(python3 -c "import re;print(re.search(r'sure_sente_app:([^@]+)@', open('$BACKEND_DIR/.env').read()).group(1))")"
+fi
+export PGPW="$APP_PW"
+psql -h "$PG_SOCKET_DIR" -p "$PG_PORT" -U sure_sente -d sure_sente_dev <<EOF
+DO \$\$ BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'sure_sente_app') THEN
+    CREATE ROLE sure_sente_app LOGIN NOCREATEDB NOCREATEROLE NOSUPERUSER;
+  END IF;
+END \$\$;
+ALTER ROLE sure_sente_app WITH PASSWORD '${APP_PW}';
+GRANT CONNECT ON DATABASE sure_sente_dev TO sure_sente_app;
+GRANT USAGE ON SCHEMA public TO sure_sente_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sure_sente_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO sure_sente_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO sure_sente_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO sure_sente_app;
+EOF
+unset PGPW
+
+cd "$BACKEND_DIR"
+mix deps.get
+# DDL runs as the admin role; the app itself connects as sure_sente_app.
+export DATABASE_URL="ecto://sure_sente:sure_sente@127.0.0.1:${PG_PORT}/sure_sente_dev"
+mix ecto.create
+mix ecto.migrate
+# Pilot category seeds are idempotent (insert on_conflict :nothing) and run
+# without SEED_DEMO; demo listings stay gated behind SEED_DEMO=true.
+set -a
+# shellcheck disable=SC1091
+source .env
+set +a
+mix run priv/repo/seeds.exs
+
+echo "setup complete. Start backend: bin/dev   frontend: bin/web"

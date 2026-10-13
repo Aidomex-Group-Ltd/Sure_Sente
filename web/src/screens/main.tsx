@@ -45,8 +45,8 @@ export function Home() {
   const logged = !!token.get();
   const [tab, setTab] = useState("work");
   const [area] = useState(townGet());
-  const name = localStorage.getItem("tugeza_name") || "there";
-  const [nudgeOff, setNudgeOff] = useState(() => localStorage.getItem("tugeza_nudge") === "1");
+  const name = localStorage.getItem("sure_sente_name") || "there";
+  const [nudgeOff, setNudgeOff] = useState(() => localStorage.getItem("sure_sente_nudge") === "1");
   const { rows, loading, error, load } = useListings();
   const listRef = useRef<HTMLDivElement>(null);
   const filtered = filterRows(rows, tab);
@@ -83,7 +83,7 @@ export function Home() {
       {!nudgeOff && (
         <div className="nudge" role="note"><span aria-hidden="true">✦</span>
           <span style={{ flex: 1 }}>Add your skills to find better matches. <Link to="/me">Complete profile →</Link></span>
-          <button className="linklike" aria-label="Dismiss" onClick={() => { setNudgeOff(true); localStorage.setItem("tugeza_nudge", "1"); }}>✕</button>
+          <button className="linklike" aria-label="Dismiss" onClick={() => { setNudgeOff(true); localStorage.setItem("sure_sente_nudge", "1"); }}>✕</button>
         </div>
       )}
       <ChipRow tab={tab} setTab={setTab} />
@@ -191,10 +191,10 @@ export function Detail() {
 export function PostWizard() {
   const logged = !!token.get();
   const [step, setStep] = useState(0);
-  const [f, setF] = useState<any>(() => { try { return JSON.parse(localStorage.getItem("tugeza_draft") || '{"title":"","kind":"work","category_id":"","pay_minor":"","area":"Ntinda","description":""}'); } catch { return { title: "", kind: "work" }; } });
+  const [f, setF] = useState<any>(() => { try { return JSON.parse(localStorage.getItem("sure_sente_draft") || '{"title":"","kind":"work","category_id":"","pay_minor":"","area":"Ntinda","description":""}'); } catch { return { title: "", kind: "work" }; } });
   const [id, setId] = useState<string | null>(null);
   const [err, setErr] = useState("");
-  useEffect(() => { localStorage.setItem("tugeza_draft", JSON.stringify(f)); }, [f]);
+  useEffect(() => { localStorage.setItem("sure_sente_draft", JSON.stringify(f)); }, [f]);
   const set = (k: string, v: string) => setF((p: any) => ({ ...p, [k]: v }));
   if (!logged) {
     return (
@@ -218,7 +218,7 @@ export function PostWizard() {
     if (!token.get()) { requireAuth("publish this listing", "/post", undefined, e.currentTarget as HTMLElement); return; }
     if (!id) return;
     await post(`/listings/${id}/publish`, {});
-    localStorage.removeItem("tugeza_draft");
+    localStorage.removeItem("sure_sente_draft");
     location.hash = "";
     window.location.href = `/listings/${id}`;
   };

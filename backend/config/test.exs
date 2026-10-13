@@ -6,11 +6,11 @@ import Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :backend, Backend.Repo,
-  username: "tugeza",
-  password: "tugeza",
+  username: "sure_sente",
+  password: "sure_sente",
   socket_dir: "/tmp/opencode",
   port: 5434,
-  database: "backend_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "sure_sente_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

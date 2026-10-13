@@ -1,4 +1,4 @@
-defmodule Backend.Repo.Migrations.CreateTugezaMarketplace do
+defmodule Backend.Repo.Migrations.CreateSureSenteMarketplace do
   use Ecto.Migration
 
   def change do

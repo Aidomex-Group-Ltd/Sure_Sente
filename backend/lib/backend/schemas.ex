@@ -581,6 +581,9 @@ defmodule Backend.Schemas.Upload do
     field :size, :integer
     field :ref, :string
     field :private, :boolean, default: true
+    # Virus-scan state: metadata-only stub never serves bytes, and any future
+    # serving path must require "clean". Values: pending | clean | quarantined.
+    field :scan_status, :string, default: "pending"
     timestamps()
   end
 
@@ -589,4 +592,5 @@ defmodule Backend.Schemas.Upload do
       u
       |> cast(a, [:uploader_id, :filename, :content_type, :size, :ref, :private])
       |> validate_required([:filename, :content_type, :size, :ref])
+      |> put_change(:scan_status, "pending")
 end

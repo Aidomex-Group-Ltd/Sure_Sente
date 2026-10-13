@@ -38,6 +38,7 @@ defmodule Backend.Accounts do
     {:ok, %{user: user, code: code}}
   end
 
+  @max_attempts 10
   def verify_code(phone, code) do
     otp =
       Repo.one(
@@ -53,6 +54,9 @@ defmodule Backend.Accounts do
 
       DateTime.compare(DateTime.utc_now() |> DateTime.truncate(:second), otp.expires_at) == :gt ->
         {:error, :expired}
+
+      otp.attempts >= @max_attempts ->
+        {:error, :locked}
 
       true ->
         hash = :crypto.hash(:sha256, code) |> Base.encode16()

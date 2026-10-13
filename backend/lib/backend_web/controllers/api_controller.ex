@@ -35,6 +35,11 @@ defmodule BackendWeb.ApiController do
       {:error, :expired} ->
         conn |> put_status(422) |> json(%{error: %{code: "expired", message: "Code expired"}})
 
+      {:error, :locked} ->
+        conn
+        |> put_status(429)
+        |> json(%{error: %{code: "locked", message: "Too many attempts. Request a new code"}})
+
       {:error, _} ->
         conn |> put_status(422) |> json(%{error: %{code: "invalid", message: "Invalid code"}})
 
