@@ -32,4 +32,3 @@ PRD owns scope; categories own fields; brokerage owns commission logic; data mod
 
 ## Launch boundary
 Design supports broad categories. Initial launch: one Ugandan locality, adult users, paid tasks, service bookings and selected ordinary-goods brokerage. Property and specialised transactions are supported in the taxonomy but stay disabled until their launch gates pass. No self-operated wallet, credit, or escrow in the first release.
-# Sure_Sente

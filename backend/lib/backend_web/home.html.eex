@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sure Sente — Work. Connect. Earn.</title>
+<meta name="description" content="Find nearby work, offer your skills, or earn by introducing buyers. Pilot now live in Kampala." />
+<style>
+:root { --green:#0C5C3C; --emerald:#059669; --navy:#1E3A5F; --ivory:#FAF5EC; --card:#FFFDF8; --line:#EADFCB; --amberbg:#FEF3DC; --amberline:#F5C65C; }
+* { box-sizing:border-box; } img { max-width:100%; }
+body { margin:0; background:var(--ivory); color:var(--navy); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; font-size:16px; line-height:1.5; }
+a:focus-visible, button:focus-visible { outline:3px solid var(--emerald); outline-offset:2px; }
+/* top nav */
+.nav { position:sticky; top:0; z-index:10; background:rgba(250,245,236,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); }
+.navin { max-width:1120px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; }
+.brand { font-weight:800; font-size:19px; display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--navy); white-space:nowrap; }
+.navlinks { display:flex; gap:4px; margin-left:8px; }
+.navlinks a { color:var(--navy); text-decoration:none; font-weight:600; padding:10px 12px; min-height:44px; display:inline-flex; align-items:center; border-radius:10px; }
+.navlinks a:hover { background:#F1E7D2; }
+.navsp { flex:1; }
+.loc { background:var(--amberbg); border:1px solid var(--amberline); color:#7C4A03; border-radius:999px; padding:8px 12px; font-size:14px; font-weight:700; white-space:nowrap; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--green); color:#fff; font-weight:700; border-radius:14px; min-height:48px; padding:12px 22px; text-decoration:none; border:none; font-size:16px; cursor:pointer; }
+.btn.ghost { background:transparent; color:var(--navy); border:2px solid var(--line); }
+.signin { color:var(--navy); font-weight:600; min-height:44px; display:inline-flex; align-items:center; padding:0 8px; white-space:nowrap; }
+/* layout */
+.wrap { max-width:1120px; margin:0 auto; padding:0 20px 40px; }
+/* hero */
+.hero { display:grid; grid-template-columns:1.05fr 1fr; gap:32px; align-items:center; padding:40px 0 28px; }
+.eyebrow { display:inline-block; background:#E4EFE7; color:var(--green); font-weight:700; font-size:14px; border-radius:999px; padding:6px 14px; margin-bottom:10px; }
+.hero h1 { font-size:clamp(32px,5vw,54px); margin:0 0 10px; line-height:1.08; letter-spacing:-.5px; }
+.hero p.sub { font-size:18px; margin:0 0 20px; max-width:46ch; }
+.ctaRow { display:flex; gap:12px; flex-wrap:wrap; }
+.cap { font-size:13px; opacity:.75; margin:8px 0 0; }
+.livebar { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; font-size:14px; font-weight:700; }
+.livebar span { background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 14px; }
+.heroImg { border-radius:24px; overflow:hidden; box-shadow:0 2px 4px rgba(60,40,10,.08),0 16px 48px rgba(60,40,10,.14); background:linear-gradient(135deg,#D9EAD3,#F5E6C4); }
+.heroImg img { display:block; width:100%; height:100%; max-height:440px; object-fit:cover; }
+/* pills */
+.chips { display:flex; gap:10px; margin:6px 0 4px; flex-wrap:wrap; }
+.chip { padding:10px 18px; min-height:44px; border-radius:12px; border:1px solid var(--line); background:var(--card); font-weight:700; font-size:15px; color:var(--navy); }
+.chip.on { background:var(--green); border-color:var(--green); color:#fff; }
+/* sections */
+.sec { padding:26px 0 6px; } .sec h2 { font-size:24px; margin:0 0 4px; } .sec p.lead { margin:0 0 14px; opacity:.85; }
+.cards3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.catcard { background:var(--card); border:1px solid var(--line); border-radius:20px; overflow:hidden; box-shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.07); min-width:0; }
+.catcard img { display:block; width:100%; height:170px; object-fit:cover; background:#EFE6D2; }
+.catcard .pad { padding:14px 16px 16px; } .catcard h3 { margin:0 0 4px; font-size:18px; }
+.catcard p { margin:0 0 10px; font-size:15px; opacity:.85; }
+.catcard a { font-weight:700; color:var(--green); min-height:44px; display:inline-flex; align-items:center; }
+/* listings */
+.listgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+.job { background:var(--card); border:1px solid var(--line); border-radius:20px; overflow:hidden; display:flex; gap:14px; padding:14px; box-shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.07); min-width:0; }
+.job img { width:96px; height:96px; flex:none; border-radius:14px; object-fit:cover; background:#EFE6D2; }
+.job .b { flex:1; min-width:0; } .job b.t { display:block; font-size:17px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.job small { opacity:.75; } .pay { color:var(--green); font-weight:800; margin:4px 0 0; }
+.empty { background:var(--card); border:1px dashed var(--line); border-radius:20px; padding:24px; text-align:center; }
+/* how */
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.step { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; }
+.step .n { display:inline-flex; width:36px; height:36px; border-radius:50%; background:var(--green); color:#fff; font-weight:800; align-items:center; justify-content:center; margin-bottom:8px; }
+.step h3 { margin:0 0 4px; } .step p { margin:0; font-size:15px; opacity:.85; }
+/* trust band */
+.trust { display:grid; grid-template-columns:1fr 1.2fr; gap:24px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px; margin-top:30px; box-shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.07); }
+.trust img { width:100%; border-radius:16px; height:220px; object-fit:cover; background:#EFE6D2; }
+.trust ul { margin:8px 0 0; padding-left:20px; } .trust li { margin:6px 0; }
+/* footer */
+.foot { border-top:1px solid var(--line); margin-top:36px; padding:20px; text-align:center; font-size:14px; }
+.foot a { color:var(--navy); margin:0 10px; min-height:44px; display:inline-block; font-weight:600; }
+.credit { font-size:12px; opacity:.65; margin-top:6px; }
+.apibar { font-size:13px; background:#EFF6F1; border:1px solid #BFE3CF; border-radius:12px; padding:10px 12px; margin-top:14px; overflow-wrap:anywhere; }
+/* mobile */
+@media (max-width:860px){
+  .navlinks { display:none; }
+  .hero { grid-template-columns:1fr; padding:24px 0 12px; }
+  .heroImg img { max-height:230px; }
+  .cards3, .steps { grid-template-columns:1fr; }
+  .listgrid { grid-template-columns:1fr; }
+  .trust { grid-template-columns:1fr; }
+  .wrap { padding:0 16px 32px; } .navin { padding:10px 16px; }
+  .loc { max-width:38vw; overflow:hidden; text-overflow:ellipsis; }
+}
+</style>
+</head>
+<body>
+<header class="nav"><div class="navin">
+  <a class="brand" href="/"><svg width="26" height="26" viewBox="0 0 40 40" aria-hidden="true"><circle cx="14" cy="20" r="9" fill="none" stroke="#0C5C3C" stroke-width="5"/><circle cx="26" cy="20" r="9" fill="none" stroke="#059669" stroke-width="5"/></svg> Sure Sente</a>
+  <nav class="navlinks" aria-label="Sections"><a href="http://localhost:5173/find">Work</a><a href="http://localhost:5173/services">Services</a><a href="http://localhost:5173/deals">Deals</a><a href="http://localhost:5173/help">Help</a></nav>
+  <span class="navsp"></span>
+  <span class="loc">📍 Kampala · pilot</span>
+  <a class="signin" href="http://localhost:5173/auth">Sign in</a>
+  <a class="btn" href="http://localhost:5173/auth">Join free</a>
+</div></header>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Pilot now live in Kampala</span>
+      <h1>Work. Connect. Earn.</h1>
+      <p class="sub">Find nearby work, offer your skills, or earn by introducing buyers.</p>
+      <div class="ctaRow">
+        <a class="btn" href="http://localhost:5173/auth">Join free →</a>
+        <a class="btn ghost" href="#explore">Explore opportunities</a>
+      </div>
+      <p class="cap">Browse first. Sign up to apply or connect.</p>
+      <div class="livebar" aria-label="Live marketplace counts">
+        <span><%= length(listings) %> open listings</span>
+        <span><%= length(categories) %> open categories</span>
+        <span>UGX pay shown upfront</span>
+      </div>
+    </div>
+    <div class="heroImg">
+      <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&amp;fit=crop&amp;w=1200&amp;q=60" alt="Artisans collaborating on a building site" fetchpriority="high" />
+    </div>
+  </section>
+
+  <div class="chips" aria-label="Marketplace areas"><span class="chip on">Work</span><span class="chip">Services</span><span class="chip">Deals</span></div>
+
+  <section class="sec" aria-label="Categories"><h2>What you can do here</h2><p class="lead">One account: find shifts, offer services, or earn agreed commissions on introductions.</p>
+    <div class="cards3">
+      <div class="catcard">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Workers on a steel structure" />
+        <div class="pad"><h3>Find work</h3><p>Nearby paid tasks and shifts with pay and schedule shown upfront. No CV needed.</p><a href="http://localhost:5173/find">Browse work →</a></div>
+      </div>
+      <div class="catcard">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Electrician at work" />
+        <div class="pad"><h3>Book services</h3><p>Local skills with clear prices. Request a quote and agree the scope in writing.</p><a href="http://localhost:5173/services">Browse services →</a></div>
+      </div>
+      <div class="catcard">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Fresh produce at a market stall" />
+        <div class="pad"><h3>Deals &amp; goods</h3><p>Everyday goods with visible prices and seller-authorised broker commissions.</p><a href="http://localhost:5173/deals">Browse deals →</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="explore" aria-label="Nearby opportunities"><h2>Explore near you</h2><p class="lead">Live from the marketplace — pay and commission terms always visible.</p>
+    <%= if listings == [] do %>
+      <div class="empty"><p>No published listings yet — check back soon, or be the first to post a need.</p></div>
+    <% else %>
+      <div class="listgrid">
+      <%= for l <- listings do %>
+        <div class="job">
+          <img loading="lazy" alt="" src="<%= case l["kind"] do
+            "service" -> "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=50"
+            "deal" -> "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=300&q=50"
+            _ -> "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=300&q=50"
+          end %>" />
+          <div class="b">
+            <b class="t"><%= l["title"] %></b>
+            <small><%= l["coarse_location"] || "Uganda" %> · <%= l["kind"] %></small>
+            <p class="pay">UGX <%= (l["pay_amount_minor"] || 0) |> trunc() |> Integer.to_string() |> String.replace(~r/\B(?=(\d{3})+(?!\d))/, ",") %> total</p>
+          </div>
+        </div>
+      <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="sec" aria-label="How it works"><h2>How Sure Sente works</h2><p class="lead">Browse freely. An account is only needed when you act.</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><h3>Browse &amp; compare</h3><p>Search work, services and deals with pay, schedules and terms visible before signup.</p></div>
+      <div class="step"><span class="n">2</span><h3>Apply or book</h3><p>Create an account to apply, message, quote or book. Every agreement is confirmed in writing.</p></div>
+      <div class="step"><span class="n">3</span><h3>Work &amp; earn</h3><p>Complete the job and get paid directly. Brokers earn only on consented, attributed introductions.</p></div>
+    </div>
+  </section>
+
+  <section class="trust" aria-label="Trust and safety">
+    <img loading="lazy" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Two people shaking hands" />
+    <div><h2>Fair terms, in writing</h2>
+      <ul>
+        <li>No wallet, no escrow — buyers pay workers and sellers directly.</li>
+        <li>Broker commission needs seller approval, buyer consent and accepted attribution.</li>
+        <li>Private contacts, documents and messages stay private and permissioned.</li>
+        <li>Disputes and appeals are handled with evidence and audit history.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="apibar">Developers: API live at <b>/api/v1</b> — <a href="/api/v1/categories">/categories</a> · <a href="/api/v1/listings">/listings</a>. Full interactive app: <a href="http://localhost:5173">localhost:5173</a>.</div>
+</div>
+
+<footer class="foot">
+  <a href="http://localhost:5173/help">Terms</a>|<a href="http://localhost:5173/help">Privacy</a>|<a href="http://localhost:5173/help">Help</a>
+  <p class="credit">Photos: Unsplash (free to use). Illustrative listing photos; listing details come from the live marketplace.</p>
+</footer>
+</body>
+</html>
