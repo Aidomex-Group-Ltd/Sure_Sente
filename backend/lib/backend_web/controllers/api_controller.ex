@@ -28,19 +28,58 @@ defmodule BackendWeb.ApiController do
     end
   end
 
-  def verify_code(conn, %{"phone" => phone, "code" => code}) do
-    case Accounts.verify_code(phone, code) do
+  def verify_code(conn, %{"phone" => phone, "code" => code} = params) do
+    consent =
+      params
+      |> Map.take(["terms_accepted", "date_of_birth"])
+      |> Map.put("client_ip", conn.remote_ip |> :inet.ntoa() |> to_string())
+
+    case Accounts.verify_code(phone, code, consent) do
       {:error, :expired} ->
         Helpers.err(conn, 422, "expired", "Code expired")
 
       {:error, :locked} ->
         Helpers.err(conn, 429, "locked", "Too many attempts. Request a new code")
 
+      {:error, {:legal_gate, changeset}} ->
+        fields =
+          Ecto.Changeset.traverse_errors(changeset, fn {msg, _} -> msg end)
+          |> Map.new(fn {k, v} -> {Atom.to_string(k), v} end)
+
+        Helpers.err(
+          conn,
+          422,
+          "legal_gate",
+          "You must accept the Terms and be 18+ to continue.",
+          %{fields: fields}
+        )
+
       {:error, _} ->
         Helpers.err(conn, 422, "invalid", "Invalid code")
 
       {:ok, user} ->
         json(conn, %{data: %{token: Accounts.token_for(user), user: Helpers.render_model(user)}})
+    end
+  end
+
+  # DPPA Right to Erasure: file a deletion request for your own account.
+  def erasure_request(conn, params) do
+    case Accounts.request_erasure(conn.assigns.current_user.id, params["reason"]) do
+      {:ok, req} ->
+        Accounts.audit(
+          conn.assigns.current_user.id,
+          "privacy.erasure_requested",
+          "user",
+          conn.assigns.current_user.id,
+          %{request_id: req.id}
+        )
+
+        json(conn, %{data: %{id: req.id, status: req.status}})
+
+      {:error, changeset} ->
+        Helpers.err(conn, 422, "invalid", "Could not file erasure request.", %{
+          fields: inspect(changeset.errors)
+        })
     end
   end
 

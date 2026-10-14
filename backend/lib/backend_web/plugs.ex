@@ -150,3 +150,123 @@ defmodule BackendWeb.Plugs.RequireStaff do
         |> halt()
   end
 end
+
+defmodule BackendWeb.Plugs.SecurityHeaders do
+  @moduledoc "OWASP A05: secure browser headers + CSP (ISO 27001 A.8.9)."
+  import Plug.Conn
+  def init(o), do: o
+
+  def call(conn, _) do
+    conn
+    |> put_resp_header(
+      "content-security-policy",
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; frame-ancestors 'none';"
+    )
+    |> put_resp_header("x-frame-options", "DENY")
+    |> put_resp_header("x-content-type-options", "nosniff")
+    |> put_resp_header("x-xss-protection", "1; mode=block")
+    |> put_resp_header("referrer-policy", "strict-origin-when-cross-origin")
+  end
+end
+
+defmodule BackendWeb.Plugs.RateLimiter do
+  @moduledoc "Brute-force / DoS guard (ETS-backed, no new deps). 60 req/min per IP+path."
+  import Plug.Conn
+  @table :sure_sente_rate_limit
+  @limit 60
+  @window_ms 60_000
+
+  def init(o), do: o
+
+  def call(conn, _) do
+    ensure_table()
+    ip = conn.remote_ip |> :inet.ntoa() |> to_string()
+    key = {conn.request_path, ip}
+    now = System.system_time(:millisecond)
+
+    count =
+      case :ets.lookup(@table, key) do
+        [{^key, {n, reset}}] when now < reset -> n
+        _ -> 0
+      end
+
+    if count >= @limit do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(429, "Too many requests. Please slow down and try again in a minute.")
+      |> halt()
+    else
+      reset = now + @window_ms
+
+      if count == 0,
+        do: :ets.insert(@table, {key, {1, reset}}),
+        else: :ets.update_element(@table, key, {2, count + 1})
+
+      conn
+    end
+  end
+
+  defp ensure_table do
+    if :ets.whereis(@table) == :undefined do
+      :ets.new(@table, [
+        :named_table,
+        :public,
+        :set,
+        read_concurrency: true,
+        write_concurrency: true
+      ])
+    end
+  end
+end
+
+defmodule BackendWeb.Plugs.SecurityAuditor do
+  @moduledoc "ISO 27001 A.8.15 / Computer Misuse Act: immutable audit log of 401/403/429 + financial endpoints."
+  import Plug.Conn
+  require Logger
+
+  def init(opts), do: opts
+
+  def call(conn, _opts) do
+    register_before_send(conn, fn conn ->
+      if conn.status in [401, 403, 429] or
+           String.starts_with?(conn.request_path, "/api/v1/referrals") or
+           String.contains?(conn.request_path, "claim") or
+           conn.request_path == "/api/v1/me/earnings" do
+        log_security_event(conn)
+      end
+
+      conn
+    end)
+  end
+
+  defp log_security_event(conn) do
+    user_id = conn.assigns[:current_user] && conn.assigns.current_user.id
+    ip = conn.remote_ip |> :inet.ntoa() |> to_string()
+
+    payload = %{
+      timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
+      ip_address: ip,
+      path: conn.request_path,
+      method: conn.method,
+      status: conn.status,
+      user_id: user_id,
+      user_agent: get_req_header(conn, "user-agent") |> List.first()
+    }
+
+    Logger.info("[SECURITY_AUDIT_LOG] #{Jason.encode!(payload)}")
+
+    try do
+      Backend.Accounts.audit(
+        user_id,
+        "security.#{conn.status}",
+        "http_request",
+        conn.request_path,
+        payload
+      )
+    rescue
+      _ -> :ok
+    end
+
+    :ok
+  end
+end

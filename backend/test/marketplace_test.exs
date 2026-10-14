@@ -55,6 +55,60 @@ defmodule Backend.MarketplaceTest do
     assert {:error, :rate_limited} = Accounts.request_code("+256700999888")
   end
 
+  test "DPPA legal gate: terms acceptance + 18+ enforced, consent logged" do
+    phone = "+256700111009"
+    {:ok, %{code: c}} = Accounts.request_code(phone)
+    # no consent attrs -> existing users pass through untouched
+    assert {:ok, user} = Accounts.verify_code(phone, c)
+
+    {:ok, %{code: c2}} = Accounts.request_code(phone)
+    # under-18 rejected
+    minor_dob = Date.utc_today() |> Date.add(-365 * 10) |> Date.to_iso8601()
+
+    assert {:error, {:legal_gate, _}} =
+             Accounts.verify_code(phone, c2, %{
+               "terms_accepted" => true,
+               "date_of_birth" => minor_dob,
+               "client_ip" => "127.0.0.1"
+             })
+
+    {:ok, %{code: c3}} = Accounts.request_code(phone)
+    # terms not accepted rejected
+    adult_dob = Date.utc_today() |> Date.add(-365 * 25) |> Date.to_iso8601()
+
+    assert {:error, {:legal_gate, _}} =
+             Accounts.verify_code(phone, c3, %{"terms_accepted" => false, "date_of_birth" => adult_dob})
+
+    {:ok, %{code: c4}} = Accounts.request_code(phone)
+
+    assert {:ok, gated} =
+             Accounts.verify_code(phone, c4, %{
+               "terms_accepted" => true,
+               "date_of_birth" => adult_dob,
+               "client_ip" => "127.0.0.1"
+             })
+
+    assert gated.dppa_consent_given == true
+    assert gated.dppa_consent_ip == "127.0.0.1"
+    assert %DateTime{} = gated.dppa_consent_timestamp
+    assert %DateTime{} = gated.terms_accepted_at
+    assert gated.id == user.id
+
+    # XSS sanitizer strips tags on listings
+    s = user!("+256700111010", %{is_seller: true})
+    c5 = cat!("t-secure")
+
+    {:ok, l} =
+      Catalog.create_listing(s.id, %{
+        "category_id" => c5.id,
+        "title" => "<script>alert(1)</script>Cleaner",
+        "kind" => "work"
+      })
+
+    refute String.contains?(l.title, "<script>")
+    assert String.contains?(l.title, "Cleaner")
+  end
+
   test "immutable offers: new terms new version, accept one" do
     s = user!("+256700111002", %{is_seller: true})
     wu = user!("+256700111003", %{is_worker: true})

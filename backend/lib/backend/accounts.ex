@@ -39,7 +39,7 @@ defmodule Backend.Accounts do
   end
 
   @max_attempts 10
-  def verify_code(phone, code) do
+  def verify_code(phone, code, consent_attrs \\ %{}) do
     otp =
       Repo.one(
         from o in OtpCode,
@@ -70,13 +70,50 @@ defmodule Backend.Accounts do
           )
 
           user = Repo.get_by(User, phone: phone)
-          {:ok, user}
+
+          case apply_legal_gate(user, consent_attrs) do
+            {:ok, user} -> {:ok, user}
+            {:error, changeset} -> {:error, {:legal_gate, changeset}}
+          end
         end
     end
   end
 
   def token_for(user) do
     Phoenix.Token.sign(BackendWeb.Endpoint, "user", user.id)
+  end
+
+  # DPPA 2019: explicit consent logging (when/how) + 18+ age gate.
+  # consent_attrs may carry "terms_accepted", "date_of_birth", "client_ip".
+  def apply_legal_gate(user, attrs) when map_size(attrs) == 0, do: {:ok, user}
+
+  def apply_legal_gate(user, attrs) do
+    ip = Map.get(attrs, "client_ip") || Map.get(attrs, :client_ip)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    legal = User.legal_changeset(user, attrs)
+
+    if legal.valid? do
+      user
+      |> User.changeset(%{
+        terms_accepted: true,
+        terms_accepted_at: now,
+        date_of_birth: Ecto.Changeset.get_field(legal, :date_of_birth),
+        dppa_consent_given: true,
+        dppa_consent_timestamp: now,
+        dppa_consent_ip: ip
+      })
+      |> Repo.update()
+    else
+      {:error, legal}
+    end
+  end
+
+  # DPPA Right to Erasure: user requests deletion; staff processes.
+  def request_erasure(user_id, reason \\ nil) do
+    %Backend.Schemas.DataErasureRequest{}
+    |> Backend.Schemas.DataErasureRequest.changeset(%{user_id: user_id, reason: reason})
+    |> Repo.insert()
   end
 
   def redact(phone) when is_binary(phone) do

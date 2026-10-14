@@ -10,6 +10,8 @@ export function Auth() {
   const pending = pendingGet();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [dob, setDob] = useState("");
+  const [terms, setTerms] = useState(false);
   const [step, setStep] = useState(0);
   const [devCode, setDevCode] = useState("");
   const [err, setErr] = useState("");
@@ -24,8 +26,11 @@ export function Auth() {
     } catch (e) { setErr(e instanceof Error ? e.message : "failed"); }
   };
   const verify = async () => {
+    setErr("");
+    if (!terms) { setErr("You must accept the Terms of Service and Privacy Policy to continue."); return; }
+    if (!dob) { setErr("Enter your date of birth — you must be at least 18 to use Sure Sente."); return; }
     try {
-      const d = await post<any>("/auth/verify-code", { phone, code });
+      const d = await post<any>("/auth/verify-code", { phone, code, terms_accepted: true, date_of_birth: dob });
       const t = d?.token || d?.data?.token || "";
       token.set(t);
       const u = d?.user || d?.data?.user || {};
@@ -41,7 +46,7 @@ export function Auth() {
       {pending && <p className="notice" role="note">Pending: {pending.action} — you will return to {pending.returnTo}. Nothing is submitted automatically.</p>}
       {notice && <p className="notice" role="status">{notice}</p>}
       {step === 0 && <><label>Phone <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="+256…" /></label><button className="btn primary" onClick={req}>Continue</button></>}
-      {step === 1 && <><p>Enter code{devCode && <> (dev code: <strong>{devCode}</strong>)</>}</p><label>Code <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" /></label><button className="btn primary" onClick={verify}>Verify</button></>}
+      {step === 1 && <><p>Enter code{devCode && <> (dev code: <strong>{devCode}</strong>)</>}</p><label>Code <input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" /></label><label>Date of birth <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required /></label><label style={{ display: "flex", gap: 8, alignItems: "flex-start" }}><input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} style={{ minHeight: 44, minWidth: 44 }} /><span>I confirm I am at least <strong>18 years of age</strong> and agree to the <Link to="/help#terms">Terms of Service</Link> and <Link to="/help#privacy">Privacy Policy</Link>.</span></label><button className="btn primary" onClick={verify}>Verify</button></>}
       {err && <p role="alert">{err}</p>}
       <p><Link className="btn2" to={returnTo}>Continue browsing</Link></p>
     </Layout>
@@ -260,8 +265,8 @@ export function Help() {
       <div className="card"><h3>Commission</h3><p>Commission = what the seller agrees to pay you for a successful introduction. It becomes earned when the agreed trigger happens.</p></div>
       <div className="card"><h3>Safety</h3><p>Phone confirmed means phone possession only. Never share ID documents or exact home address by default.</p></div>
       <div className="card"><h3>Disputes</h3><p>Outcome disputed? Payment is not confirmed until acknowledged.</p></div>
-      <div className="card" id="terms"><h3>Terms</h3><p>Browsing Sure Sente is free. An account is needed to apply, message, quote, post, or refer. No wallet or escrow is offered — payments happen directly between parties. Commission rules: the rate and trigger stated on the listing apply; attribution must be confirmed before payout is expected. Contact support via Reports for help.</p></div>
-      <div className="card" id="privacy"><h3>Privacy</h3><p>Public pages show only display names, approximate areas, and public reviews — never phone numbers or exact addresses. We store your phone for sign-in, your town preference, and safe drafts on your device. Contact support to correct or remove account data.</p></div>
+      <div className="card" id="terms"><h3>Terms</h3><p>Browsing Sure Sente is free. An account is needed to apply, message, quote, post, or refer. You must be 18 or older. No wallet or escrow is offered — payments happen directly between parties. Commission rules: the rate and trigger stated on the listing apply; attribution must be confirmed before payout is expected. System manipulation, unauthorized access, or misuse is prohibited under Uganda's Computer Misuse Act (2011, as amended 2022) and may be logged and reported. Sure Sente™ is a trademark of Aidomex Group Ltd. Contact support via Reports for help.</p></div>
+      <div className="card" id="privacy"><h3>Privacy</h3><p>Public pages show only display names, approximate areas, and public reviews — never phone numbers or exact addresses. We store your phone for sign-in, your consent record (when, how, and from which IP address), your town preference, and safe drafts on your device, in line with Uganda's Data Protection and Privacy Act, 2019. You may request correction or deletion of your data at any time via your account or support; deletion requests are tracked until processed. Data controller: Aidomex Group Ltd.</p></div>
     </Layout>
   );
 }

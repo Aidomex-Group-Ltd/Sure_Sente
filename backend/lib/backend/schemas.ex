@@ -14,6 +14,14 @@ defmodule Backend.Schemas.User do
     field :is_staff, :boolean, default: false
     field :staff_role, :string
     field :status, :string, default: "active"
+    # Uganda DPPA 2019 consent + 18+ age gate
+    field :terms_accepted, :boolean, default: false
+    field :terms_accepted_at, :utc_datetime
+    field :date_of_birth, :date
+    field :dppa_consent_given, :boolean, default: false
+    field :dppa_consent_timestamp, :utc_datetime
+    field :dppa_consent_ip, :string
+    field :data_retention_until, :date
     timestamps()
   end
 
@@ -31,10 +39,100 @@ defmodule Backend.Schemas.User do
         :is_broker,
         :is_staff,
         :staff_role,
-        :status
+        :status,
+        :terms_accepted,
+        :terms_accepted_at,
+        :date_of_birth,
+        :dppa_consent_given,
+        :dppa_consent_timestamp,
+        :dppa_consent_ip,
+        :data_retention_until
       ])
       |> validate_required([:phone])
       |> unique_constraint(:phone)
+
+  # Registration/legal gate: terms acceptance + age 18+ (DPPA consent
+  # recorded separately via record_consent/3 on OTP verify).
+  def legal_changeset(u, a) do
+    u
+    |> cast(a, [:terms_accepted, :date_of_birth])
+    |> validate_required([:terms_accepted, :date_of_birth])
+    |> validate_terms_acceptance()
+    |> validate_age_over_18()
+  end
+
+  defp validate_terms_acceptance(c) do
+    case get_field(c, :terms_accepted) do
+      true ->
+        put_change(c, :terms_accepted_at, DateTime.utc_now() |> DateTime.truncate(:second))
+
+      _ ->
+        add_error(
+          c,
+          :terms_accepted,
+          "You must accept the Terms of Service and Privacy Policy to continue."
+        )
+    end
+  end
+
+  defp validate_age_over_18(c) do
+    case get_field(c, :date_of_birth) do
+      %Date{} = dob ->
+        today = Date.utc_today()
+
+        age =
+          today.year - dob.year -
+            if {today.month, today.day} < {dob.month, dob.day}, do: 1, else: 0
+
+        if age >= 18,
+          do: c,
+          else:
+            add_error(c, :date_of_birth, "You must be at least 18 years old to use Sure Sente.")
+
+      _ ->
+        c
+    end
+  end
+end
+
+defmodule Backend.Schemas.DataErasureRequest do
+  use Ecto.Schema
+  import Ecto.Changeset
+  @primary_key {:id, :binary_id, autogenerate: true}
+  schema "data_erasure_requests" do
+    field :user_id, :binary_id
+    field :status, :string, default: "pending"
+    field :reason, :string
+    timestamps()
+  end
+
+  def changeset(u, a),
+    do:
+      u
+      |> cast(a, [:user_id, :status, :reason])
+      |> validate_required([:user_id])
+      |> validate_inclusion(:status, ["pending", "processed", "rejected"])
+end
+
+defmodule Backend.Sanitize do
+  @moduledoc "XSS safeguard: strip HTML tags from user input (no new deps)."
+
+  def strip_tags(nil), do: nil
+  def strip_tags(s) when is_binary(s), do: Regex.replace(~r/<[^>]*>/, s, "")
+
+  def sanitize_string(nil), do: nil
+
+  def sanitize_string(s) when is_binary(s) do
+    s |> strip_tags() |> String.trim() |> String.slice(0, 10_000)
+  end
+
+  def sanitize_field(changeset, field) do
+    case Ecto.Changeset.get_change(changeset, field) do
+      nil -> changeset
+      val when is_binary(val) -> Ecto.Changeset.put_change(changeset, field, sanitize_string(val))
+      _ -> changeset
+    end
+  end
 end
 
 defmodule Backend.Schemas.OtpCode do
@@ -76,6 +174,9 @@ defmodule Backend.Schemas.Profile do
       u
       |> cast(a, [:user_id, :display_name, :skills, :service_areas, :availability, :bio])
       |> validate_required([:user_id])
+      |> Backend.Sanitize.sanitize_field(:display_name)
+      |> Backend.Sanitize.sanitize_field(:bio)
+      |> Backend.Sanitize.sanitize_field(:availability)
 end
 
 defmodule Backend.Schemas.Category do
@@ -156,6 +257,10 @@ defmodule Backend.Schemas.Listing do
         "closed",
         "rejected"
       ])
+      |> Backend.Sanitize.sanitize_field(:title)
+      |> Backend.Sanitize.sanitize_field(:description)
+      |> Backend.Sanitize.sanitize_field(:location_text)
+      |> Backend.Sanitize.sanitize_field(:coarse_location)
 end
 
 defmodule Backend.Schemas.ListingVersion do

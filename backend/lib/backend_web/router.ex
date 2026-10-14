@@ -4,7 +4,9 @@ defmodule BackendWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
     plug BackendWeb.Plugs.CORS
+    plug BackendWeb.Plugs.RateLimiter
     plug BackendWeb.Plugs.Auth
+    plug BackendWeb.Plugs.SecurityAuditor
   end
 
   pipeline :authed do
@@ -17,6 +19,7 @@ defmodule BackendWeb.Router do
 
   pipeline :web do
     plug :accepts, ["html"]
+    plug BackendWeb.Plugs.SecurityHeaders
   end
 
   scope "/", BackendWeb do
@@ -71,6 +74,7 @@ defmodule BackendWeb.Router do
     post "/reviews", ApiController, :review_create
     post "/disputes", ApiController, :dispute_create
     post "/uploads", ApiController, :upload
+    post "/me/erasure-request", ApiController, :erasure_request
   end
 
   scope "/api/v1/admin", BackendWeb do
