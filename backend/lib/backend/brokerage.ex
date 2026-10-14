@@ -19,9 +19,14 @@ defmodule Backend.Brokerage do
   end
 
   def request_access(listing_id, broker_id) do
-    %BrokerRequest{}
-    |> BrokerRequest.changeset(%{listing_id: listing_id, broker_id: broker_id})
-    |> Repo.insert()
+    # 12-API: eligible broker only — a seller cannot request brokerage on
+    # their own listing (Q05: unauthorised actions denied server-side).
+    if Repo.get!(Listing, listing_id).owner_id == broker_id,
+      do: {:error, :forbidden},
+      else:
+        %BrokerRequest{}
+        |> BrokerRequest.changeset(%{listing_id: listing_id, broker_id: broker_id})
+        |> Repo.insert()
   end
 
   def approve(req, principal_id) do
@@ -75,7 +80,16 @@ defmodule Backend.Brokerage do
   end
 
   def create_referral(ag, listing_id, attrs) do
-    if ag.status != "active", do: {:error, :not_authorised}, else: do_ref(ag, listing_id, attrs)
+    cond do
+      ag.status != "active" ->
+        {:error, :not_authorised}
+
+      ag.principal_id == ag.broker_id ->
+        {:error, :forbidden}
+
+      true ->
+        do_ref(ag, listing_id, attrs)
+    end
   end
 
   defp do_ref(ag, listing_id, attrs) do
@@ -163,30 +177,60 @@ defmodule Backend.Brokerage do
   defp do_attr(_, _, _), do: {:error, :bad_decision}
 
   def record_outcome(referral, actor_id, milestone, evidence_refs, amount_minor, currency) do
-    {:ok, _ev} =
-      %DealEvent{}
-      |> DealEvent.changeset(%{
-        referral_id: referral.id,
-        actor_id: actor_id,
-        milestone: milestone,
-        evidence_refs: evidence_refs || []
-      })
-      |> Repo.insert()
+    ag = Repo.get!(BrokerageAgreement, referral.agreement_id)
 
-    trigger = "#{referral.id}:#{milestone}"
+    # 12-API: participants only; valid outcome only after attribution accepted
+    # (Q05/Q07: no commission claim from unauthorised or unverified leads).
+    if actor_id not in [ag.principal_id, ag.broker_id] do
+      {:error, :forbidden}
+    else
+      if referral.attribution != "accepted" do
+        {:error, :bad_state}
+      else
+        trigger = "#{referral.id}:#{milestone}"
 
-    %CommissionClaim{}
-    |> CommissionClaim.changeset(%{
-      referral_id: referral.id,
-      trigger_key: trigger,
-      amount_minor: amount_minor || 0,
-      currency: currency || "UGX",
-      status: "earned"
-    })
-    |> Repo.insert()
+        # Deal event + unique claim commit together (11-DATA: unique by
+        # referral and qualifying trigger); a duplicate rolls both back.
+        Repo.transaction(fn ->
+          {:ok, _ev} =
+            %DealEvent{}
+            |> DealEvent.changeset(%{
+              referral_id: referral.id,
+              actor_id: actor_id,
+              milestone: milestone,
+              evidence_refs: evidence_refs || []
+            })
+            |> Repo.insert()
+
+          %CommissionClaim{}
+          |> CommissionClaim.changeset(%{
+            referral_id: referral.id,
+            trigger_key: trigger,
+            amount_minor: amount_minor || 0,
+            currency: currency || "UGX",
+            status: "earned"
+          })
+          |> Repo.insert()
+          |> elem(1)
+        end)
+      end
+    end
   end
 
+  # 12-API: payment-report is payer only (the selling principal); acknowledge
+  # is payee only (the broker). State must move earned → reported → received
+  # (Q10: not received until the payee acknowledges).
   def report_payment(claim, payer_id, amount) do
+    claim = Repo.get!(CommissionClaim, claim.id)
+    r = Repo.get!(Referral, claim.referral_id)
+    ag = Repo.get!(BrokerageAgreement, r.agreement_id)
+
+    if ag.principal_id != payer_id or claim.status != "earned",
+      do: {:error, :forbidden},
+      else: do_report(claim, payer_id, amount)
+  end
+
+  defp do_report(claim, payer_id, amount) do
     {:ok, pr} =
       %PaymentRecord{}
       |> PaymentRecord.changeset(%{
@@ -202,6 +246,23 @@ defmodule Backend.Brokerage do
   end
 
   def acknowledge(claim, payee_id) do
+    claim = Repo.get!(CommissionClaim, claim.id)
+
+    if claim.status != "payment_reported",
+      do: {:error, :bad_state},
+      else: do_ack(claim, payee_id)
+  end
+
+  defp do_ack(claim, payee_id) do
+    r = Repo.get!(Referral, claim.referral_id)
+    ag = Repo.get!(BrokerageAgreement, r.agreement_id)
+
+    if ag.broker_id != payee_id,
+      do: {:error, :forbidden},
+      else: do_ack_payee(claim, payee_id)
+  end
+
+  defp do_ack_payee(claim, payee_id) do
     pr =
       Repo.one(
         from p in PaymentRecord,

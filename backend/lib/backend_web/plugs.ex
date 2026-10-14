@@ -1,3 +1,11 @@
+# 12-API contract: invalid UUIDs return 404, never 400/500. phoenix_ecto
+# maps Ecto.Query.CastError to 400, so the project overrides it here.
+defimpl Plug.Exception, for: Ecto.Query.CastError do
+  def status(_), do: 404
+
+  def actions(_), do: []
+end
+
 defmodule BackendWeb.Plugs.CORS do
   import Plug.Conn
   def init(o), do: o
@@ -32,13 +40,23 @@ end
 defmodule BackendWeb.Helpers do
   import Plug.Conn
 
+  # Central error envelope per 12-API spec:
+  # {error: {code, message, fields?}, request_id}. request_id comes from
+  # Plug.RequestId (also sent as the x-request-id response header).
+  def err(conn, status, code, message, extra \\ %{}) do
+    request_id =
+      Logger.metadata()[:request_id] || get_resp_header(conn, "x-request-id") |> List.first()
+
+    body = %{error: Map.merge(%{code: code, message: message}, extra), request_id: request_id}
+    conn |> put_status(status) |> Phoenix.Controller.json(body)
+  end
+
   def need_user(conn, _) do
     if conn.assigns[:current_user],
       do: conn,
       else:
         conn
-        |> put_status(401)
-        |> Phoenix.Controller.json(%{error: %{code: "unauthorized", message: "Login required"}})
+        |> err(401, "unauthorized", "Login required")
         |> halt()
   end
 
@@ -49,8 +67,7 @@ defmodule BackendWeb.Helpers do
       do: conn,
       else:
         conn
-        |> put_status(403)
-        |> Phoenix.Controller.json(%{error: %{code: "forbidden", message: "Staff only"}})
+        |> err(403, "forbidden", "Staff only")
         |> halt()
   end
 
@@ -113,8 +130,7 @@ defmodule BackendWeb.Plugs.RequireUser do
       do: conn,
       else:
         conn
-        |> put_status(401)
-        |> Phoenix.Controller.json(%{error: %{code: "unauthorized", message: "Login required"}})
+        |> BackendWeb.Helpers.err(401, "unauthorized", "Login required")
         |> halt()
   end
 end
@@ -130,8 +146,7 @@ defmodule BackendWeb.Plugs.RequireStaff do
       do: conn,
       else:
         conn
-        |> put_status(403)
-        |> Phoenix.Controller.json(%{error: %{code: "forbidden", message: "Staff only"}})
+        |> BackendWeb.Helpers.err(403, "forbidden", "Staff only")
         |> halt()
   end
 end

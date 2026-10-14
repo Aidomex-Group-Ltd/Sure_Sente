@@ -56,13 +56,32 @@ export function AuthSheet() {
   const nav = useNavigate();
   const s = useAuthSheet();
   const firstBtn = useRef<HTMLButtonElement>(null);
-  useEffect(() => { if (s) { const t = setTimeout(() => firstBtn.current?.focus(), 30); const esc = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; window.addEventListener("keydown", esc); return () => { window.removeEventListener("keydown", esc); clearTimeout(t); }; } }, [s]); // eslint-disable-line
+  const sheetRef = useRef<HTMLDivElement>(null);
+  // 04-UI keyboard: Esc to dismiss; Tab/Shift-Tab cycles inside the dialog
+  // (full tab-cycle focus trap, not just first focus).
+  useEffect(() => {
+    if (!s) return;
+    const t = setTimeout(() => firstBtn.current?.focus(), 30);
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    const tab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !sheetRef.current) return;
+      const els = Array.from(sheetRef.current.querySelectorAll<HTMLElement>("button"));
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", esc);
+    window.addEventListener("keydown", tab);
+    return () => { window.removeEventListener("keydown", esc); window.removeEventListener("keydown", tab); clearTimeout(t); };
+  }, [s]); // eslint-disable-line
   if (!s) return null;
   const close = () => { sheetState = null; emit(); s.trigger?.focus?.(); };
   const go = (path: string) => { const st = sheetState; sheetState = null; emit(); nav(path + `?returnTo=${encodeURIComponent(st?.returnTo || "/")}`); };
   return (
     <div className="sheet-ov" onClick={close}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label="Account needed" onClick={(e) => e.stopPropagation()}>
+      <div ref={sheetRef} className="sheet" role="dialog" aria-modal="true" aria-label="Account needed" onClick={(e) => e.stopPropagation()}>
         <h2 style={{ margin: "0 0 6px" }}>Account needed</h2>
         <p>Create an account to {s.action}.</p>
         <button ref={firstBtn} className="btn primary" onClick={() => go("/auth")}>Continue with phone</button>
@@ -173,7 +192,7 @@ export function ListingCard({ l, area }: { l: Record<string, any>; area: string 
   const pay = (l.pay_amount_minor ?? l.pay_minor ?? l.price_minor) as number | undefined;
   return (
     <Link className="lrow" to={`/listings/${l.id}`} aria-label={String(l.title || "Listing")}>
-      <span className="icochip" aria-hidden="true">{l.kind === "service" ? "✂" : l.kind === "goods" ? "▣" : "🛠".slice(0, 0) || "⚒"}</span>
+      <span className="icochip" aria-hidden="true">{l.kind === "service" ? "✂" : l.kind === "goods" ? "▣" : l.kind === "deal" ? "▣" : "⚒"}</span>
       <span className="lbody"><b>{String(l.title || "Opportunity")}</b><small>{loc}{ago ? ` · ${ago}` : ""}</small><br /><small style={{ color: "#0C5C3C", fontWeight: 700 }}>UGX {pay != null ? Number(pay).toLocaleString() : "—"} total</small></span>
       <span className="chev" aria-hidden="true">›</span>
     </Link>

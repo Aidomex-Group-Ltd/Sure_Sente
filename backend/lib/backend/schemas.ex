@@ -553,6 +553,14 @@ defmodule Backend.Schemas.Review do
     |> cast(a, [:reviewer_id, :reviewee_id, :listing_id, :rating, :body])
     |> validate_required([:reviewer_id, :reviewee_id, :rating])
     |> validate_number(:rating, greater_than_or_equal_to: 1, less_than_or_equal_to: 5)
+    |> unique_constraint([:reviewer_id, :reviewee_id, :listing_id],
+      name: :reviews_reviewer_reviewee_listing_uniq,
+      message: "already reviewed"
+    )
+    |> unique_constraint([:reviewer_id, :reviewee_id],
+      name: :reviews_reviewer_reviewee_uniq,
+      message: "already reviewed"
+    )
   end
 end
 

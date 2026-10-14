@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { get, post, patch, token, queueDraft, online, fmtUGX, type Listing } from "../lib/api";
 import { Layout, States, PayLine, ListingCard, TownPill, HeroArt, Logo, requireAuth, townGet } from "../lib/ui";
 
@@ -135,6 +135,7 @@ export function SimpleList({ title, kind }: { title: string; kind: string }) {
 
 export function Detail() {
   const { id } = useParams();
+  const nav = useNavigate();
   const [l, setL] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,10 +157,30 @@ export function Detail() {
   const gate = (label: string, draft?: Record<string, unknown>) => (e: React.MouseEvent) =>
     requireAuth(label, `/listings/${id}`, draft, e.currentTarget as HTMLElement);
   const applyAuthed = async () => {
-    try { await post(`/listings/${id}/applications`, { cover_note: "I am available." }); setMsg("Application sent. Status: pending."); }
-    catch (e) { if (!online()) { queueDraft("application", { listing_id: id }); setMsg("Offline. Draft saved on device."); } else setMsg(e instanceof Error ? e.message : "failed"); }
+    try { await post(`/listings/${id}/applications`, { cover_note: "I am available." }); setMsg("Application sent. Status: pending.");    } catch (e) { if (!online()) { queueDraft("application", { listing_id: id }); setMsg("Offline. Draft saved on device."); } else setMsg(e instanceof Error ? e.message : "failed"); }
+  };
+  // Authenticated actions (04-UI: auth at action boundary, then real actions).
+  const messageSeller = async () => {
+    try {
+      const c = await post<any>("/conversations", { subject_type: "listing", subject_id: id, participant_ids: [(l as any)?.owner?.id].filter(Boolean) });
+      const cid = c?.id || c?.data?.id;
+      if (cid) nav(`/messages/${cid}`); else setMsg("Conversation opened.");
+    } catch (e) { setMsg(e instanceof Error ? e.message : "failed"); }
+  };
+  const quoteRequest = async () => {
+    const amt = prompt("Requested price in UGX (e.g. 50000):", "50000");
+    if (!amt) return;
+    try { await post(`/listings/${id}/quotes`, { amount_minor: Number(amt) || 0, currency: "UGX" }); setMsg("Quote request sent. Status: pending."); }
+    catch (e) { setMsg(e instanceof Error ? e.message : "failed"); }
+  };
+  const brokerAccess = async () => {
+    try { await post(`/listings/${id}/broker-requests`, {}); setMsg("Brokerage authorisation requested. Pending until the seller approves."); }
+    catch (e) { setMsg(e instanceof Error ? e.message : "failed"); }
   };
   const owner = (l?.owner || {}) as any;
+  const rolesTxt = owner.roles && typeof owner.roles === "object"
+    ? Object.entries(owner.roles).filter(([, v]) => v).map(([k]) => k).join(", ") || "—"
+    : String(owner.roles || "—");
   return (
     <Layout guest><States loading={loading} error={error} empty={!loading && !error && !l} onRetry={load}>
       {l && <>
@@ -172,15 +193,15 @@ export function Detail() {
         <div className="card">
           <h3>Seller</h3>
           <p><Link to={`/profiles/${owner.id || ""}`}>{String(owner.display_name || "Seller")}</Link> · <span className="verified-tag">{owner.verification ? String(owner.verification) : "Unverified"}</span></p>
-          <p className="muted">Roles: {Array.isArray(owner.roles) ? owner.roles.join(", ") : "—"}</p>
+          <p className="muted">Roles: {rolesTxt}</p>
         </div>
         <div className="card"><h3>Reviews</h3>{reviews.length === 0 ? <p className="muted">No public reviews yet.</p> : reviews.slice(0, 10).map((r: any, i: number) => <p key={String(r.id || i)}>{String(r.body || r.comment || "(review)")} {r.rating ? `· ${r.rating}/5` : ""}</p>)}</div>
         <div className="row">
           <button className="btn primary" onClick={(e) => { if (token.get()) applyAuthed(); else gate("apply to this job")(e); }}>Apply</button>
-          <button className="btn secondary" onClick={gate("message the seller")}>Message</button>
-          <button className="btn2" onClick={gate("request a quote")}>Quote</button>
-          <button className="btn2" onClick={gate("request brokerage")}>Broker request</button>
-          <button className="btn2" onClick={gate("send a referral")}>Referral</button>
+          <button className="btn secondary" onClick={(e) => { if (token.get()) messageSeller(); else gate("message the seller")(e); }}>Message</button>
+          <button className="btn2" onClick={(e) => { if (token.get()) quoteRequest(); else gate("request a quote")(e); }}>Quote</button>
+          <button className="btn2" onClick={(e) => { if (token.get()) brokerAccess(); else gate("request brokerage")(e); }}>Broker request</button>
+          <button className="btn2" onClick={(e) => { if (token.get()) nav("/broker"); else gate("send a referral")(e); }}>Referral</button>
         </div>
         <p aria-live="polite">{msg}</p>
       </>}
@@ -191,10 +212,15 @@ export function Detail() {
 export function PostWizard() {
   const logged = !!token.get();
   const [step, setStep] = useState(0);
-  const [f, setF] = useState<any>(() => { try { return JSON.parse(localStorage.getItem("sure_sente_draft") || '{"title":"","kind":"work","category_id":"","pay_minor":"","area":"Ntinda","description":""}'); } catch { return { title: "", kind: "work" }; } });
+  const [cats, setCats] = useState<any[]>([]);
+  const [f, setF] = useState<any>(() => { try { return JSON.parse(localStorage.getItem("sure_sente_draft") || '{"title":"","kind":"work","category_id":"","pay_amount_minor":"","area":"Ntinda","description":""}'); } catch { return { title: "", kind: "work" }; } });
   const [id, setId] = useState<string | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => { localStorage.setItem("sure_sente_draft", JSON.stringify(f)); }, [f]);
+  // 06-CATEGORIES: only open pilot categories are selectable server-side.
+  useEffect(() => {
+    if (logged && cats.length === 0) get<any>("/categories").then((d) => setCats(Array.isArray(d) ? d : d?.data || d || [])).catch(() => {});
+  }, [logged, cats.length]);
   const set = (k: string, v: string) => setF((p: any) => ({ ...p, [k]: v }));
   if (!logged) {
     return (
@@ -210,7 +236,17 @@ export function PostWizard() {
   const draft = async () => {
     setErr("");
     try {
-      const d = await post<any>("/listings", { ...f, pay_minor: Number(f.pay_minor) || 30000 });
+      // 02-Q01: pay and scope must be visible — send spec field names
+      // (pay_amount_minor, coarse_location); server validates aliases too.
+      const payload = {
+        title: f.title,
+        kind: f.kind,
+        category_id: f.category_id || undefined,
+        pay_amount_minor: Number(f.pay_amount_minor) || 30000,
+        coarse_location: f.area,
+        description: f.description,
+      };
+      const d = await post<any>("/listings", payload);
       setId(String((d as any).data?.id ?? (d as any).id)); setStep(3);
     } catch (e) { if (!online()) { queueDraft("listing", f); setErr("Offline. Draft saved on device, not published."); } else setErr(e instanceof Error ? e.message : "failed"); }
   };
@@ -225,10 +261,12 @@ export function PostWizard() {
   return (
     <Layout>
       <h2>Post a need ({step + 1}/4)</h2>
-      {step === 0 && <><label>Type <select value={f.kind} onChange={(e) => set("kind", e.target.value)}><option value="work">Work</option><option value="service">Service</option><option value="goods">Goods/Deal</option></select></label><button className="btn primary" onClick={() => setStep(1)}>Continue</button></>}
-      {step === 1 && <><label>Title <input value={f.title} onChange={(e) => set("title", e.target.value)} /></label><label>Pay/price UGX <input inputMode="numeric" value={f.pay_minor} onChange={(e) => set("pay_minor", e.target.value)} /></label><label>Area <input value={f.area} onChange={(e) => set("area", e.target.value)} /></label><button className="btn primary" onClick={() => setStep(2)}>Continue</button></>}
+      {step === 0 && <><label>Type <select value={f.kind} onChange={(e) => set("kind", e.target.value)}><option value="work">Work</option><option value="service">Service</option><option value="deal">Goods/Deal</option></select></label><button className="btn primary" onClick={() => setStep(1)}>Continue</button></>}
+      {step === 1 && <><label>Title <input value={f.title} onChange={(e) => set("title", e.target.value)} /></label>
+        <label>Category <select value={f.category_id || ""} onChange={(e) => set("category_id", e.target.value)} aria-label="Category"><option value="">(auto — first open pilot)</option>{cats.map((c: any) => <option key={c.id} value={c.id}>{String(c.name || c.key)}</option>)}</select></label>
+        <label>Pay/price UGX <input inputMode="numeric" value={f.pay_amount_minor} onChange={(e) => set("pay_amount_minor", e.target.value)} /></label><label>Area <input value={f.area} onChange={(e) => set("area", e.target.value)} /></label><button className="btn primary" onClick={() => setStep(2)}>Continue</button></>}
       {step === 2 && <><label>Details <textarea value={f.description} onChange={(e) => set("description", e.target.value)} /></label><p className="hint">Small photos only (jpg/png/webp, max 5MB).</p><button className="btn primary" onClick={draft}>Save draft</button></>}
-      {step === 3 && <><div className="card"><h3>{f.title || "(untitled)"}</h3><p>Pay: {fmtUGX(Number(f.pay_minor) || 0)} · basis: total</p><p>Draft saved. It has not been published.</p></div><button className="btn primary" onClick={publish}>Publish</button></>}
+      {step === 3 && <><div className="card"><h3>{f.title || "(untitled)"}</h3><p>Pay: {fmtUGX(Number(f.pay_amount_minor) || 0)} · basis: total</p><p>Draft saved. It has not been published.</p></div><button className="btn primary" onClick={publish}>Publish</button></>}
       {err && <p role="alert">{err}</p>}
     </Layout>
   );
@@ -237,6 +275,16 @@ export function PostWizard() {
 export function Applications() {
   const [note, setNote] = useState("");
   const [aid, setAid] = useState("");
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  // 03-IA ownership: workers see their applications; employers see
+  // applications to their own listings — server scopes both.
+  const load = () => {
+    get<any>("/applications")
+      .then((d) => { setRows((d?.applications ?? d?.data?.applications ?? d) || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
   const sendOffer = async (accept: boolean) => {
     try {
       if (accept) await post(`/offers/${aid}/accept`, {}, true);
@@ -247,6 +295,16 @@ export function Applications() {
   const booking = async (to: string) => { try { await post(`/bookings/${aid}/events`, { to }); setNote(`Booking: ${to}.`); } catch (e) { setNote(e instanceof Error ? e.message : "failed"); } };
   return (
     <Layout><h2>Applications &amp; offers</h2>
+      <div className="card"><h3>Your applications and offers</h3>
+        {loading ? <p className="muted">Loading…</p> : rows.length === 0 ? <p className="muted">No applications yet. Apply from a listing page.</p> : rows.slice(0, 12).map((r) => (
+          <div key={r.id} className="card" style={{ margin: "6px 0" }}>
+            <p><b>{String(r.listing_title || "Listing")}</b> <span className="muted">({String(r.listing_kind || "")})</span></p>
+            <p className="muted">Status: <strong>{String(r.status || "submitted")}</strong> · {r.role === "owner" ? "Application to your listing" : "Your application"} · Pay {fmtUGX(r.pay_amount_minor)}</p>
+            {r.cover_note ? <p className="muted">Note: {String(r.cover_note)}</p> : null}
+            <p><button className="btn2" onClick={() => { setAid(String(r.id)); setNote(`Using ID ${String(r.id).slice(0, 8)}… for the actions below.`); }}>Use this ID</button></p>
+          </div>
+        ))}
+      </div>
       <label>Application/offer/booking ID <input value={aid} onChange={(e) => setAid(e.target.value)} placeholder="paste id" /></label>
       <div className="row"><button className="btn primary" onClick={() => sendOffer(false)}>Send offer</button>
         <button className="btn secondary" onClick={() => sendOffer(true)}>Accept offer</button></div>

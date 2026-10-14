@@ -21,7 +21,7 @@ mix deps.get
 mix ecto.create && mix ecto.migrate
 SEED_DEMO=true mix run priv/repo/seeds.exs   # pilot categories + labelled [DEMO] listing
 mix phx.server                                # http://localhost:4000
-mix test                                      # 8 passed
+mix test                                      # 12 passed
 ```
 
 ## 3. Frontend
@@ -56,6 +56,6 @@ overseas-recruitment) rejected server-side with 422.
 ## Backup / restore
 
 ```bash
-pg_dump -h /tmp/opencode -p 5434 -U sure_sente backend_dev > backup.sql
-psql -h /tmp/opencode -p 5434 -U sure_sente backend_dev < backup.sql
+pg_dump -h /tmp/opencode -p 5434 -U sure_sente sure_sente_dev > backup.sql
+psql -h /tmp/opencode -p 5434 -U sure_sente sure_sente_dev < backup.sql
 ```

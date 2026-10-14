@@ -14,9 +14,11 @@ defmodule BackendWeb.Router do
   pipeline :staff do
     plug BackendWeb.Plugs.RequireStaff
   end
+
   pipeline :web do
     plug :accepts, ["html"]
   end
+
   scope "/", BackendWeb do
     pipe_through :web
     get "/", PageController, :home
@@ -45,20 +47,24 @@ defmodule BackendWeb.Router do
     post "/listings/:id/publish", ApiController, :listing_publish
     post "/listings/:id/draft", ApiController, :listing_draft
     post "/listings/:listing_id/applications", ApiController, :apply
+    get "/applications", ApiController, :applications_index
     post "/applications/:application_id/offers", ApiController, :offer
     post "/offers/:offer_id/accept", ApiController, :offer_accept
     post "/listings/:listing_id/quotes", ApiController, :quote_create
     post "/bookings/:booking_id/events", ApiController, :booking_event
+    get "/bookings/:id", ApiController, :booking_show
     post "/listings/:listing_id/broker-requests", ApiController, :broker_request
     post "/broker-requests/:id/approve", ApiController, :broker_approve
     post "/agreements/:id/accept", ApiController, :agreement_accept
     post "/agreements/:agreement_id/referrals", ApiController, :referral_create
     post "/referrals/:id/attribution", ApiController, :referral_attr
+    get "/referrals/:id", ApiController, :referral_show
     post "/referrals/:id/outcome", ApiController, :referral_outcome
     post "/claims/:id/payment-report", ApiController, :claim_report
     post "/claims/:id/acknowledge", ApiController, :claim_ack
     get "/me/earnings", ApiController, :earnings
     post "/conversations", ApiController, :conv_create
+    get "/conversations", ApiController, :conversations_index
     post "/conversations/:id/messages", ApiController, :msg_create
     get "/conversations/:id/messages", ApiController, :msg_list
     post "/reports", ApiController, :report_create

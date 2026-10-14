@@ -10,14 +10,68 @@ defmodule Backend.Catalog do
   end
 
   def create_listing(owner_id, attrs) do
+    attrs = alias_fields(attrs)
     cat_id = attrs["category_id"] || attrs[:category_id]
 
-    case gate_check!(cat_id) do
-      {:error, _} ->
-        {:error, :gated}
+    case category_for(cat_id, attrs["kind"]) do
+      {:error, reason} ->
+        {:error, reason}
 
-      {:ok, _} ->
-        %Listing{} |> Listing.changeset(Map.put(attrs, "owner_id", owner_id)) |> Repo.insert()
+      {:ok, c} ->
+        %Listing{}
+        |> Listing.changeset(
+          attrs
+          |> Map.put("owner_id", owner_id)
+          |> Map.put("category_id", c.id)
+        )
+        |> Repo.insert()
+    end
+  end
+
+  # Web/curl aliases per 04-UI/06-CATEGORIES fields: pay_minor -> pay_amount_minor,
+  # area/price -> coarse_location. Server stays validator of last resort.
+  defp alias_fields(a) when is_map(a) do
+    a
+    |> then(fn m ->
+      pay = m["pay_minor"] || m[:pay_minor] || m["price_minor"] || m[:price_minor]
+
+      if pay,
+        do:
+          Map.put(
+            Map.drop(m, ["pay_minor", :pay_minor, "price_minor", :price_minor]),
+            "pay_amount_minor",
+            pay
+          ),
+        else: m
+    end)
+    |> then(fn m ->
+      area = m["area"] || m[:area] || m["location"] || m[:location]
+
+      if area && !m["coarse_location"],
+        do: Map.put(Map.drop(m, ["area", :area, "location", :location]), "coarse_location", area),
+        else: m
+    end)
+  end
+
+  # 06-CATEGORIES: taxonomy supports all kinds; only approved pilot categories
+  # enabled. If the client omits category_id, pick the first open pilot category
+  # of that kind (Kampala pilot default) instead of failing.
+  defp category_for(nil, kind) do
+    first =
+      Repo.one(
+        from c in Category,
+          where: c.kind == ^kind and c.pilot_enabled and c.gate_status == "open",
+          order_by: [asc: c.inserted_at],
+          limit: 1
+      )
+
+    if first, do: {:ok, first}, else: {:error, :gated}
+  end
+
+  defp category_for(cat_id, _kind) do
+    case gate_check!(cat_id) do
+      {:error, _} -> {:error, :gated}
+      {:ok, c} -> {:ok, c}
     end
   end
 

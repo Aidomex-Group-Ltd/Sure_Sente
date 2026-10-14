@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { get, post, token, queueDraft, online } from "../lib/api";
+import { get, post, put, token, queueDraft, online } from "../lib/api";
 import { Layout, States, allowReturnTo, pendingGet, pendingSet } from "../lib/ui";
 
 export function Auth() {
@@ -53,6 +53,19 @@ export function Messages() {
   const [text, setText] = useState("");
   const [note, setNote] = useState("");
   const [cid, setCid] = useState("");
+  const [convs, setConvs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(!!token.get());
+  const load = () => {
+    if (!token.get()) return;
+    // 03-IA /messages: conversation list. Participant-scoped server-side.
+    get<any>("/conversations")
+      .then((d) => {
+        setConvs(Array.isArray(d) ? d : d?.data || d || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
   if (!logged) {
     return (
       <Layout guest><div className="card"><h2>Inbox</h2>
@@ -66,12 +79,18 @@ export function Messages() {
     try {
       const [a, b] = text.split(",").map((s) => s.trim());
       const d = await post<any>("/conversations", { participant_ids: [a, b].filter(Boolean) });
-      const id2 = d?.id || JSON.stringify(d);
-      setCid(id2); setNote("Conversation opened: " + id2);
+      const id2 = d?.id || d?.data?.id || JSON.stringify(d);
+      setCid(id2); setNote("Conversation opened: " + id2); load();
     } catch (e) { setNote(e instanceof Error ? e.message : "failed"); }
   };
   return (
     <Layout><h2>Messages</h2>
+      <div className="card"><h3>Your conversations</h3>
+        {loading ? <p className="muted">Loading…</p> : convs.length === 0 ? <p className="muted">No conversations yet — start one below.</p> : convs.slice(0, 15).map((c) => {
+          const pid = (c.participant_ids || []).filter((x: string) => x !== token.get() && x.length > 10).join(", ");
+          return <p key={c.id}><Link to={`/messages/${c.id}`}>Conversation {pid ? `with ${pid.slice(0, 8)}…` : `# ${String(c.id).slice(0, 8)}…`}</Link></p>;
+        })}
+      </div>
       <label>Start conversation (participant ids, comma separated) <input value={text} onChange={(e) => setText(e.target.value)} /></label>
       <button className="btn primary" onClick={create}>New conversation</button>
       <label>Open conversation ID <input value={cid} onChange={(e) => setCid(e.target.value)} /></label>
@@ -118,7 +137,12 @@ export function Me() {
     if (!logged) return;
     get<any>("/me/profile").then((d) => {
       const v = d?.data ?? d;
-      if (v && typeof v === "object") setP({ name: String(v.name || ""), skills: String(v.skills || ""), area: String(v.area || "") });
+      if (v && typeof v === "object")
+        setP({
+          name: String(v.display_name || v.name || ""),
+          skills: Array.isArray(v.skills) ? v.skills.join(", ") : String(v.skills || ""),
+          area: Array.isArray(v.service_areas) ? v.service_areas.join(", ") : String(v.service_areas || v.area || ""),
+        });
     }).catch(() => {});
   }, [logged]);
   if (!logged) {
@@ -131,7 +155,18 @@ export function Me() {
       </div></Layout>
     );
   }
-  const save = async () => { try { await post("/me/profile", p); localStorage.setItem("sure_sente_name", p.name); setNote("Profile saved."); } catch (e) { setNote(e instanceof Error ? e.message : "failed"); } };
+  // 03-IA/F03: profile fields map to display_name / skills / service_areas
+  // (PUT /me/profile); posting the raw form would silently drop them.
+  const save = async () => {
+    try {
+      await put("/me/profile", {
+        display_name: p.name,
+        skills: p.skills.split(",").map((s) => s.trim()).filter(Boolean),
+        service_areas: p.area.split(",").map((s) => s.trim()).filter(Boolean),
+      });
+      localStorage.setItem("sure_sente_name", p.name); setNote("Profile saved.");
+    } catch (e) { setNote(e instanceof Error ? e.message : "failed"); }
+  };
   const out = () => {
     token.clear(); localStorage.removeItem("sure_sente_profile");
     Object.keys(localStorage).forEach((k) => { if (k.startsWith("sure_sente_draft_private")) localStorage.removeItem(k); });
@@ -155,8 +190,7 @@ export function ProfilePage() {
   const [p, setP] = useState<any | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
+  const [error, setError] = useState<string | null>(null);  useEffect(() => {
     (async () => {
       try {
         const d = await get<any>(`/profiles/${id}`);
@@ -171,7 +205,7 @@ export function ProfilePage() {
       {p && <>
         <h2>{String(p.display_name || p.name || "Profile")}</h2>
         <p><span className="verified-tag">{p.verification ? String(p.verification) : "Unverified"}</span></p>
-        <p className="muted">Roles: {Array.isArray(p.roles) ? p.roles.join(", ") : String(p.roles || "—")}</p>
+        <p className="muted">Roles: {p.roles && typeof p.roles === "object" && !Array.isArray(p.roles) ? Object.entries(p.roles).filter(([, v]) => v).map(([k]) => k).join(", ") || "—" : Array.isArray(p.roles) ? p.roles.join(", ") : String(p.roles || "—")}</p>
         <div className="card"><h3>Skills</h3><p>{Array.isArray(p.skills) ? p.skills.join(", ") : String(p.skills || "None listed")}</p></div>
         <div className="card"><h3>Service areas</h3><p>{Array.isArray(p.service_areas) ? p.service_areas.join(", ") : String(p.service_areas || p.area || "—")}</p></div>
         <div className="card"><h3>Reviews</h3>{reviews.length === 0 ? <p className="muted">No public reviews yet.</p> : reviews.slice(0, 10).map((r: any, i: number) => <p key={String(r.id || i)}>{String(r.body || r.comment || "(review)")} {r.rating ? `· ${r.rating}/5` : ""}</p>)}</div>
@@ -251,4 +285,42 @@ export function Admin() {
       </States>
     </Layout>
   );
+}
+
+// 03-IA deep links: dedicated booking + referral timelines. Participant- or
+// party-scoped on the server; outsiders see a 403 error state, never the record.
+function RecordTimeline({ title, path, back }: { title: string; path: string; back: string }) {
+  const { id } = useParams();
+  const [row, setRow] = useState<Record<string, unknown> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const load = async () => {
+    setLoading(true);
+    try { const d = await get<any>(`${path}/${id}`); setRow(d?.data || d); setError(null); }
+    catch (e) { setError(e instanceof Error ? e.message : "failed"); } finally { setLoading(false); }
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  return (
+    <Layout><h2>{title}</h2>
+      <States loading={loading} error={error} empty={!loading && !error && !row} onRetry={load}>
+        <>{row && (
+          <div className="card">
+            <p>Status: <strong>{String(row["status"] ?? row["attribution"] ?? "—")}</strong></p>
+            {Object.entries(row).filter(([k]) => !["id"].includes(k)).slice(0, 12).map(([k, v]) => (
+              <p key={k}><span className="mono">{k}</span>: {typeof v === "object" ? JSON.stringify(v)?.slice(0, 160) : String(v ?? "—")}</p>
+            ))}
+          </div>
+        )}</>
+      </States>
+      <p><Link className="btn2" to={back}>Back</Link></p>
+    </Layout>
+  );
+}
+
+export function BookingDetail() {
+  return <RecordTimeline title="Booking timeline" path="/bookings" back="/applications" />;
+}
+
+export function ReferralDetail() {
+  return <RecordTimeline title="Referral timeline" path="/referrals" back="/broker" />;
 }

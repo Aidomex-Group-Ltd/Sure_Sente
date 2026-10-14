@@ -180,6 +180,77 @@ defmodule Backend.MarketplaceTest do
     assert pub["owner"]["id"] == s.id
   end
 
+  test "outcome/report/ack guards: participants, payer, payee, state order" do
+    s = user!("+256700111014", %{is_seller: true})
+    b = user!("+256700111015", %{is_broker: true})
+    outsider = user!("+256700111016")
+    c = cat!("t-guard")
+
+    {:ok, l} =
+      Catalog.create_listing(s.id, %{
+        "category_id" => c.id,
+        "title" => "G",
+        "kind" => "deal",
+        "commission_type" => "fixed",
+        "commission_value_minor" => 3000
+      })
+
+    {:ok, l} = Catalog.publish(l)
+    {:ok, req} = Brokerage.request_access(l.id, b.id)
+    {:ok, %{agreement: ag}} = Brokerage.approve(req, s.id)
+    {:ok, ag} = Brokerage.accept_agreement(ag, b.id)
+    now = DateTime.utc_now() |> DateTime.to_iso8601()
+
+    {:ok, %{referral: r1}} =
+      Brokerage.create_referral(ag, l.id, %{
+        "buyer_consent_at" => now,
+        "consent_ref" => "CG",
+        "buyer_phone" => "+256712000001"
+      })
+
+    # Outcome by non-participant, and before attribution accepted (Q05/Q07).
+    assert {:error, :forbidden} = Brokerage.record_outcome(r1, outsider.id, "sold", [], 100, "UGX")
+    assert {:error, :bad_state} = Brokerage.record_outcome(r1, s.id, "sold", [], 100, "UGX")
+    {:ok, r1} = Brokerage.attribute(r1, s.id, "accept", nil)
+    {:ok, claim} = Brokerage.record_outcome(r1, s.id, "sold", [], 3000, "UGX")
+
+    # Payment report: payer = principal only (Q10); report before payee ack.
+    assert {:error, :forbidden} = Brokerage.report_payment(claim, b.id, 3000)
+    assert {:error, :forbidden} = Brokerage.report_payment(claim, outsider.id, 3000)
+
+    # Acknowledge only after payment_reported, and only by the broker payee.
+    assert {:error, :bad_state} = Brokerage.acknowledge(claim, b.id)
+    {:ok, _} = Brokerage.report_payment(claim, s.id, 3000)
+    assert {:error, :forbidden} = Brokerage.acknowledge(claim, s.id)
+    assert {:error, :forbidden} = Brokerage.acknowledge(claim, outsider.id)
+    {:ok, _} = Brokerage.acknowledge(Repo.get!(Backend.Schemas.CommissionClaim, claim.id), b.id)
+    assert Repo.get!(Backend.Schemas.CommissionClaim, claim.id).status == "received"
+  end
+
+  test "seller cannot broker-request own listing; default pilot category + field aliases" do
+    s = user!("+256700111017", %{is_seller: true})
+    c = cat!("t-sel", true)
+
+    {:ok, l} =
+      Catalog.create_listing(s.id, %{"category_id" => c.id, "title" => "S", "kind" => "work"})
+
+    {:ok, l} = Catalog.publish(l)
+    assert {:error, :forbidden} = Brokerage.request_access(l.id, s.id)
+
+    # No category_id: falls back to first open pilot category of that kind.
+    {:ok, l2} =
+      Catalog.create_listing(s.id, %{
+        "title" => "D2",
+        "kind" => "work",
+        "pay_minor" => 4200,
+        "area" => "Jinja"
+      })
+
+    assert l2.category_id
+    assert l2.pay_amount_minor == 4200
+    assert l2.coarse_location == "Jinja"
+  end
+
   test "reviews: create, reject self-review" do
     a = user!("+256700111012")
     b = user!("+256700111013")

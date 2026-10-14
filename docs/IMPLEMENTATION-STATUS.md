@@ -67,3 +67,30 @@ category cards, live listing grid with per-kind thumbnails, how-it-works,
 trust band, footer. Six images.unsplash.com photos verified HTTP 200 with
 gradient fallbacks, lazy-loading, and an Unsplash credit line. Verified 200,
 12.9KB, all sections present. Interactive flows stay in the React app (:5173).
+
+## Gap-close run (14 Oct 2026)
+
+| Item | Spec | Status | Evidence |
+|------|------|--------|----------|
+| Invalid UUID / missing record → 404, never 500 (CastError mapped 400→404) | 12-API | verified | curl: /bookings|/referrals|/conversations bad+empty UUIDs and PATCH /listings all 404 |
+| Payment-report payer-only (principal), claim earned→reported state | 12-API, Q10 | verified | mix test guards test |
+| Acknowledge payee-only (broker), reported→received state | 12-API, Q10 | verified | mix test guards test |
+| Outcome participants-only + attribution-accepted-before-claim; deal_event+claim atomic | 07, 11-DATA | verified | mix test; duplicate trigger rolls both back |
+| Seller cannot broker-request own listing | 12-API (eligible broker) | verified | mix test |
+| GET /applications: worker + employer views with cover-note scope | 03-IA ownership, Q02 | verified | curl 200; projected fields |
+| GET /conversations participant-scoped inbox | 03-IA /messages | verified | curl 200 |
+| Earnings separated: expected/earned/reported/received buckets | 03-IA, 07 | verified | controller groups by attribution+status |
+| Listing create: default open pilot category by kind; pay_minor/area aliases | 06, Q01 | verified | curl draft w/o category 201, pay+location persisted |
+| PostWizard: kind deal not goods; category select; pay_amount_minor + coarse_location | 04, 05 | implemented | web build ok |
+| Profile save via PUT /me/profile with display_name/skills/service_areas | F03 | implemented | web build ok (was POST /me/profile → 404) |
+| Detail actions functional when authed: message → conversation, quote, broker request, referral | 04/05 | implemented | build ok |
+| Applications + Messages screens list real scoped records | 03-IA | implemented | build ok |
+| AuthSheet full Tab-cycle focus trap (+ Esc, focus restore) | 04-UI | implemented | code review (was first-focus only) |
+| Profile public roles render from {worker/prov…: bool} projection | 04/12 | implemented | build ok |
+| Review uniqueness (per listing / per profile) + friendly 422 duplicate | 08-TRUST | verified | migration + mix test |
+| Error envelope {error:{code,message,fields?}, request_id} | 12-API | verified | Helpers.err used by all paths |
+
+Known remaining limitations (unchanged, deferred per roadmap Ph7): live SMS,
+live payments, organisations, verification checks, delivery worker, geo-index,
+PWA cache, Expected-Version header, uploads malware scan. mix test: 12 passed.
+web: tsc -b && vite build ok.

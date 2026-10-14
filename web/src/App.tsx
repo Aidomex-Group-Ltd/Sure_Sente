@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { Home, Find, SimpleList, Detail, PostWizard, Applications, Broker } from "./screens/main";
-import { Auth, Messages, Conversation, Me, Earnings, Reports, Help, Admin, ProfilePage } from "./screens/rest";
+import { Auth, Messages, Conversation, Me, Earnings, Reports, Help, Admin, ProfilePage, BookingDetail, ReferralDetail } from "./screens/rest";
 import { token } from "./lib/api";
 import type { JSX } from "react";
 
@@ -27,7 +27,9 @@ export default function App() {
         <Route path="/messages" element={<Messages />} />
         <Route path="/messages/:id" element={<Req el={<Conversation />} ret="/messages" />} />
         <Route path="/applications" element={<Req el={<Applications />} ret="/applications" />} />
+        <Route path="/bookings/:id" element={<Req el={<BookingDetail />} ret="/applications" />} />
         <Route path="/broker" element={<Req el={<Broker />} ret="/broker" />} />
+        <Route path="/referrals/:id" element={<Req el={<ReferralDetail />} ret="/broker" />} />
         <Route path="/me" element={<Me />} />
         <Route path="/earnings" element={<Req el={<Earnings />} ret="/earnings" />} />
         <Route path="/reports" element={<Reports />} />
