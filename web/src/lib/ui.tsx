@@ -156,8 +156,8 @@ export function Layout({ children, guest }: { children: ReactNode; guest?: boole
       <header className="topbar">
         <span className="brandrow"><Logo /> <span>Sure Sente</span></span>
         <span className="topsp" />
-        {logged ? (<><TownPill /><Link className="iconbtn" to="/messages" aria-label="Notifications">♪</Link><Link className="avatar" to="/me" aria-label="Profile">{name.slice(0, 1).toUpperCase()}</Link></>)
-          : (<><Link className="btn2" to="/auth" style={{ minHeight: 44, margin: 0 }}>Sign in</Link></>)}
+        {logged ? (<><TownPill /><Link className="btn primary" to="/earnings" style={{ minHeight: 44, margin: 0 }}>Start Earning</Link><Link className="avatar" to="/me" aria-label="Profile">{name.slice(0, 1).toUpperCase()}</Link></>)
+          : (<><Link className="btn primary" to="/auth" style={{ minHeight: 44, margin: 0 }}>Start Earning</Link></>)}
       </header>
       <main className="main">{children}</main>
       <nav className="tabs" aria-label="Primary">

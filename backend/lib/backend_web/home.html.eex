@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sure Sente — Work. Connect. Earn.</title>
-<meta name="description" content="Find nearby work, offer your skills, or earn by introducing buyers. Pilot now live in Kampala." />
+<title>Sure Sente — Find Deals. Earn More.</title>
+<meta name="description" content="Discover quick gigs, earn commissions, and buy or sell products in one marketplace built around opportunity." />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23052214'/><path d='M35 65 L50 35 L65 65 M42 52 H58' stroke='%23D4AF37' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M55 28 L72 28 L72 45' stroke='%23D4AF37' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
 <meta name="theme-color" content="#052214" />
 <style>
@@ -15,191 +15,199 @@
 body { margin:0; background:var(--dark); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; font-size:16px; line-height:1.5; }
 ::selection { background:#D4AF37; color:#052214; }
 a:focus-visible, button:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
-/* gold utilities */
 .gold-grad { background:linear-gradient(135deg,#FFF6D6 0%,#D4AF37 50%,#AA7C11 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 .clay { background:linear-gradient(135deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 100%); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(212,175,55,.25); box-shadow:0 20px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.2); }
 .gold-btn { background:linear-gradient(135deg,#F3E5AB 0%,#D4AF37 100%); color:#052214; font-weight:700; transition:all .3s ease; }
 .gold-btn:hover { background:linear-gradient(135deg,#FFF6D6 0%,#E5C158 100%); box-shadow:0 0 20px rgba(212,175,55,.5); }
-.tagchip { display:inline-block; padding:5px 12px; border-radius:999px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--gold); font-weight:700; }
-/* top nav */
-.nav { position:sticky; top:0; z-index:10; background:rgba(5,34,20,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+.nav { position:sticky; top:0; z-index:50; background:rgba(5,34,20,.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--line); }
 .navin { max-width:1120px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:12px; }
-.brand { font-weight:800; font-size:19px; display:flex; align-items:center; gap:8px; text-decoration:none; color:#F3E5AB; white-space:nowrap; }
+.brand { font-weight:900; font-size:19px; display:flex; align-items:center; gap:10px; text-decoration:none; color:#F3E5AB; letter-spacing:.06em; white-space:nowrap; }
+.brandmark { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#0EA46A,#052214); border:1px solid rgba(212,175,55,.5); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,.4); }
 .navlinks { display:flex; gap:4px; margin-left:8px; }
-.navlinks a { color:var(--text); text-decoration:none; font-weight:600; padding:10px 12px; min-height:44px; display:inline-flex; align-items:center; border-radius:10px; }
-.navlinks a:hover { background:rgba(255,255,255,.08); color:var(--gold); }
+.navlinks a { color:#D1D5DB; text-decoration:none; font-weight:500; font-size:14px; padding:10px 12px; min-height:44px; display:inline-flex; align-items:center; border-radius:10px; }
+.navlinks a:hover { color:var(--gold); }
 .navsp { flex:1; }
-.loc { background:rgba(212,175,55,.14); border:1px solid var(--border); color:var(--lightGold); border-radius:999px; padding:8px 12px; font-size:14px; font-weight:700; white-space:nowrap; }
-.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:14px; min-height:48px; padding:12px 22px; text-decoration:none; border:none; font-size:16px; cursor:pointer; }
-.btn.ghost { background:rgba(255,255,255,.07); color:var(--text); border:1px solid var(--border); }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius:12px; min-height:44px; padding:10px 20px; text-decoration:none; border:none; font-size:14px; cursor:pointer; }
+.btn.ghost { background:rgba(255,255,255,.07); color:var(--text); border:1px solid var(--border); backdrop-filter:blur(12px); }
 .btn.ghost:hover { border-color:var(--gold); }
-.signin { color:var(--text); font-weight:600; min-height:44px; display:inline-flex; align-items:center; padding:0 8px; white-space:nowrap; }
-.signin:hover { color:var(--gold); }
-/* layout */
 .wrap { max-width:1120px; margin:0 auto; padding:0 20px 40px; position:relative; }
-/* hero */
-.hero { position:relative; display:grid; grid-template-columns:1.05fr 1fr; gap:32px; align-items:center; padding:40px 0 28px; overflow:hidden; }
-.blob { position:absolute; width:420px; height:420px; border-radius:999px; pointer-events:none; }
-.hero .eyebrow { display:inline-block; background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--gold); font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; border-radius:999px; padding:6px 14px; margin-bottom:10px; }
-.hero h1 { font-size:clamp(34px,5vw,58px); margin:0 0 10px; line-height:1.08; letter-spacing:-.5px; }
-.hero p.sub { font-size:18px; margin:0 0 20px; max-width:46ch; color:var(--muted); }
+.hero { position:relative; display:grid; grid-template-columns:1.05fr 1fr; gap:32px; align-items:center; padding:24px 0 28px; overflow:hidden; }
+.blob { position:absolute; width:420px; height:300px; border-radius:999px; pointer-events:none; background:radial-gradient(closest-side, rgba(14,164,106,.15), transparent); top:40px; left:50%; transform:translateX(-50%); filter:blur(60px); }
+.eyebrow { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.07); border:1px solid var(--border); color:var(--gold); font-weight:700; font-size:12px; letter-spacing:.12em; text-transform:uppercase; border-radius:999px; padding:6px 14px; margin-bottom:10px; }
+.eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:ping 1.5s infinite; }
+@keyframes ping { 0%{opacity:1} 50%{opacity:.3} 100%{opacity:1} }
+.hero h1 { font-size:clamp(30px,5vw,54px); margin:0 0 10px; line-height:1.15; letter-spacing:-.5px; }
+.hero p.sub { font-size:17px; margin:0 0 20px; max-width:46ch; color:var(--muted); font-weight:300; }
 .ctaRow { display:flex; gap:12px; flex-wrap:wrap; }
-.cap { font-size:13px; color:var(--muted); margin:8px 0 0; }
-.livebar { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; font-size:14px; font-weight:700; }
-.livebar span { background:rgba(255,255,255,.07); border:1px solid var(--border); border-radius:999px; padding:6px 14px; }
-.heroImg { border-radius:24px; overflow:hidden; position:relative; }
-.heroImg img { display:block; width:100%; height:100%; max-height:440px; object-fit:cover; transition:transform .7s ease; }
-.heroImg:hover img { transform:scale(1.04); }
-/* pills */
-.chips { display:flex; gap:10px; margin:6px 0 4px; flex-wrap:wrap; }
-.chip { padding:10px 18px; min-height:44px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.07); font-weight:700; font-size:15px; color:var(--text); }
-.chip.on { background:linear-gradient(135deg,#F3E5AB,#D4AF37); border-color:transparent; color:#052214; }
-/* sections */
-.sec { padding:26px 0 6px; } .sec h2 { font-size:26px; margin:0 0 4px; } .sec p.lead { margin:0 0 14px; color:var(--muted); }
-.cards3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-.catcard { border-radius:20px; overflow:hidden; min-width:0; }
-.catcard:hover { border-color:var(--gold); }
-.catcard img { display:block; width:100%; height:170px; object-fit:cover; background:#0B3B24; }
-.catcard .pad { padding:14px 16px 16px; } .catcard h3 { margin:0 0 4px; font-size:18px; color:#F3E5AB; }
-.catcard p { margin:0 0 10px; font-size:15px; color:var(--muted); }
-.catcard a { font-weight:700; color:var(--gold); min-height:44px; display:inline-flex; align-items:center; }
-/* listings */
-.listgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
-.job { border-radius:20px; overflow:hidden; display:flex; gap:14px; padding:14px; min-width:0; }
-.job img { width:96px; height:96px; flex:none; border-radius:14px; object-fit:cover; background:#0B3B24; }
-.job .b { flex:1; min-width:0; } .job b.t { display:block; font-size:17px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.job small { color:var(--muted); } .pay { color:var(--gold); font-weight:800; margin:4px 0 0; }
+.heroImg { border-radius:24px; overflow:hidden; position:relative; padding:12px; }
+.heroImg .frame { position:relative; height:340px; overflow:hidden; border-radius:16px; }
+.heroImg img.slide { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .6s ease; }
+.heroImg img.slide.on { opacity:1; }
+.heroImg .shade { position:absolute; inset:0; background:linear-gradient(to top, rgba(5,34,20,.9), transparent 60%); }
+.badge { position:absolute; bottom:24px; left:24px; right:24px; padding:14px 16px; border-radius:16px; display:flex; align-items:center; justify-content:space-between; backdrop-filter:blur(12px); }
+.badge small { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.15em; color:var(--gold); font-weight:700; }
+.badge b { font-size:14px; }
+.badge a { font-size:12px; background:rgba(212,175,55,.2); color:var(--gold); font-weight:700; padding:6px 12px; border-radius:8px; border:1px solid rgba(212,175,55,.4); text-decoration:none; }
+.badge a:hover { background:var(--gold); color:var(--dark); }
+.dots { display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding:0 6px; }
+.dots .row { display:flex; gap:8px; }
+.dots button.dotb { height:8px; border-radius:999px; border:none; cursor:pointer; transition:all .3s; background:rgba(255,255,255,.3); width:8px; padding:0; }
+.dots button.dotb.on { width:32px; background:var(--gold); }
+.dots .nav2 { display:flex; gap:8px; }
+.dots .nav2 button { padding:8px; border-radius:8px; cursor:pointer; color:rgba(255,255,255,.8); }
+.dots .nav2 button:hover { border-color:var(--gold); color:#fff; }
+.sec { padding:26px 0 6px; } .sec h2 { font-size:24px; margin:0 0 4px; } .sec p.lead { margin:0 0 14px; color:var(--muted); font-size:14px; }
+.sechead { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:16px; }
+.sechead a { font-size:12px; font-weight:600; color:var(--gold); text-decoration:none; } .sechead a:hover { text-decoration:underline; }
+.hscroll { display:flex; gap:20px; overflow-x:auto; padding:4px 0 16px; scroll-snap-type:x mandatory; }
+.deal { min-width:260px; max-width:300px; scroll-snap-align:start; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; }
+.deal:hover { border-color:var(--gold); }
+.deal .im { position:relative; height:176px; overflow:hidden; background:var(--emerald); }
+.deal .im img { width:100%; height:100%; object-fit:cover; transition:transform .5s; }
+.deal:hover .im img { transform:scale(1.05); }
+.deal .cat { position:absolute; top:12px; right:12px; background:rgba(5,34,20,.9); color:var(--gold); font-size:11px; font-weight:700; padding:4px 10px; border-radius:6px; border:1px solid var(--border); }
+.deal .pad { padding:14px 16px; } .deal h3 { margin:0 0 6px; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.deal:hover h3 { color:var(--gold); }
+.deal .price { font-weight:800; color:var(--gold); font-size:16px; }
+.deal .foot2 { padding:0 16px 16px; }
+.deal .foot2 a { display:block; text-align:center; padding:8px; background:rgba(255,255,255,.07); border:1px solid rgba(212,175,55,.3); color:var(--gold); font-size:12px; font-weight:700; border-radius:8px; text-decoration:none; }
+.deal .foot2 a:hover { background:var(--gold); color:var(--dark); }
+.duo { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.panel { border-radius:24px; padding:24px; }
+.panel h3 { margin:0; font-size:18px; display:flex; align-items:center; gap:8px; }
+.panel .ph { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:12px; }
+.panel .ph a { font-size:12px; color:var(--gold); text-decoration:none; } .panel .ph a:hover { text-decoration:underline; }
+.opprow { padding:12px 14px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(212,175,55,.15); display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.opprow:hover { border-color:rgba(212,175,55,.5); }
+.opprow p { margin:0; font-size:12px; font-weight:700; } .opprow small { font-size:11px; color:var(--muted); } .opprow small b { color:#34D399; }
+.opprow a.mini { font-size:12px; padding:6px 12px; border-radius:8px; text-decoration:none; }
 .empty { border:1px dashed var(--border); border-radius:20px; padding:24px; text-align:center; color:var(--muted); }
-/* how */
-.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-.step { border-radius:20px; padding:18px; }
-.step .n { display:inline-flex; width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#F3E5AB,#D4AF37); color:#052214; font-weight:800; align-items:center; justify-content:center; margin-bottom:8px; }
-.step h3 { margin:0 0 4px; color:#F3E5AB; } .step p { margin:0; font-size:15px; color:var(--muted); }
-/* trust band */
-.trust { display:grid; grid-template-columns:1fr 1.2fr; gap:24px; align-items:center; border-radius:24px; padding:24px; margin-top:30px; }
-.trust h2 { margin:0; } .trust img { width:100%; border-radius:16px; height:220px; object-fit:cover; background:#0B3B24; }
-.trust ul { margin:8px 0 0; padding-left:20px; } .trust li { margin:6px 0; }
-/* footer */
 .foot { border-top:1px solid var(--line); margin-top:36px; padding:20px; text-align:center; font-size:14px; }
-.foot a { color:var(--text); margin:0 10px; min-height:44px; display:inline-block; font-weight:600; }
+.foot a { color:var(--text); margin:0 10px; min-height:44px; display:inline-block; font-weight:600; text-decoration:none; }
 .foot a:hover { color:var(--gold); }
-.credit { font-size:12px; color:var(--muted); margin-top:6px; }
-.apibar { font-size:13px; background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:14px; overflow-wrap:anywhere; }
-.apibar a { color:var(--gold); }
-/* mobile */
 @media (max-width:860px){
   .navlinks { display:none; }
   .hero { grid-template-columns:1fr; padding:24px 0 12px; }
-  .heroImg img { max-height:230px; }
-  .cards3, .steps { grid-template-columns:1fr; }
-  .listgrid { grid-template-columns:1fr; }
-  .trust { grid-template-columns:1fr; }
+  .heroImg .frame { height:280px; }
+  .duo { grid-template-columns:1fr; }
   .wrap { padding:0 16px 32px; } .navin { padding:10px 16px; }
-  .loc { max-width:38vw; overflow:hidden; text-overflow:ellipsis; }
 }
 </style>
 </head>
 <body>
 <header class="nav"><div class="navin">
-  <a class="brand" href="/"><svg width="26" height="26" viewBox="0 0 40 40" aria-hidden="true"><circle cx="14" cy="20" r="9" fill="none" stroke="#D4AF37" stroke-width="5"/><circle cx="26" cy="20" r="9" fill="none" stroke="#0EA46A" stroke-width="5"/></svg> Sure Sente</a>
-  <nav class="navlinks" aria-label="Sections"><a href="http://localhost:5173/find">Work</a><a href="http://localhost:5173/services">Services</a><a href="http://localhost:5173/deals">Deals</a><a href="http://localhost:5173/help">Help</a></nav>
+  <a class="brand" href="/"><span class="brandmark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-9h6a2 2 0 012 2v0a2 2 0 01-2 2H9a2 2 0 00-2 2v0a2 2 0 002 2h6"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 5l3 3-3 3"/></svg></span> SURE SENTE</a>
+  <nav class="navlinks" aria-label="Sections"><a href="http://localhost:5173/deals">Opportunities</a><a href="http://localhost:5173/deals">Marketplace</a><a href="http://localhost:5173/find">Gigs</a><a href="http://localhost:5173/help">Rewards</a></nav>
   <span class="navsp"></span>
-  <span class="loc">📍 Kampala · pilot</span>
-  <a class="signin" href="http://localhost:5173/auth">Sign in</a>
-  <a class="btn gold-btn" href="http://localhost:5173/auth">Join free</a>
+  <a class="btn gold-btn" href="http://localhost:5173/auth">Start Earning</a>
 </div></header>
 
 <div class="wrap">
-  <div class="blob" style="top:-120px; left:-120px; background:radial-gradient(closest-side, rgba(14,164,106,.20), transparent);"></div>
-  <div class="blob" style="bottom:-160px; right:-120px; background:radial-gradient(closest-side, rgba(212,175,55,.12), transparent);"></div>
+  <div class="blob"></div>
 
-  <section class="hero">
+  <!-- HERO: top of page on mobile + desktop, dynamic carousel -->
+  <section class="hero" id="hero" aria-label="Featured opportunities">
     <div style="position:relative; z-index:1;">
-      <span class="eyebrow">Pilot now live in Kampala</span>
-      <h1 class="gold-grad">Work. Connect. Earn.</h1>
-      <p class="sub">Find nearby work, offer your skills, or earn by introducing buyers.</p>
+      <span class="eyebrow"><span class="dot"></span><span id="slideTag">Instant Liquidity</span></span>
+      <h1 class="gold-grad" id="slideHeadline">Find Deals. Earn More. Move Money Forward.</h1>
+      <p class="sub" id="slideDesc">Discover quick gigs, earn commissions, and buy or sell products in one marketplace built around opportunity.</p>
       <div class="ctaRow">
-        <a class="btn gold-btn" href="http://localhost:5173/auth">Join free →</a>
-        <a class="btn ghost" href="#explore">Explore opportunities</a>
+        <a class="btn gold-btn" id="slidePrimary" href="http://localhost:5173/deals">Explore Deals →</a>
+        <a class="btn ghost clay" id="slideSecondary" href="http://localhost:5173/auth">Start Earning</a>
       </div>
-      <p class="cap">Browse first. Sign up to apply or connect.</p>
-      <div class="livebar" aria-label="Live marketplace counts">
-        <span><%= length(listings) %> open listings</span>
-        <span><%= length(categories) %> open categories</span>
-        <span>UGX pay shown upfront</span>
-      </div>
+      <p style="font-size:13px;color:var(--muted);margin:8px 0 0;">Browse first. Sign up to apply or connect.</p>
     </div>
-    <div class="heroImg clay" style="padding:8px; position:relative; z-index:1;">
-      <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&amp;fit=crop&amp;w=1200&amp;q=60" alt="Artisans collaborating on a building site" fetchpriority="high" style="border-radius:18px;" />
-    </div>
-  </section>
-
-  <section class="sec" aria-label="Categories" style="position:relative; z-index:1;"><h2 class="gold-grad">Elevated opportunities</h2><p class="lead">One account: find shifts, offer services, or earn agreed commissions on introductions.</p>
-    <div class="cards3">
-      <div class="catcard clay">
-        <img loading="lazy" src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Workers on a steel structure" />
-        <div class="pad"><h3>Find work</h3><p>Nearby paid tasks and shifts with pay and schedule shown upfront. No CV needed.</p><a href="http://localhost:5173/find">Browse work →</a></div>
+    <div style="position:relative; z-index:1;">
+      <div class="heroImg clay">
+        <div class="frame" id="slideFrame">
+          <img class="slide on" src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=60" alt="Verified deals" fetchpriority="high" />
+          <img class="slide" src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1200&q=60" alt="Earn commissions" loading="lazy" />
+          <img class="slide" src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=60" alt="Quick gigs" loading="lazy" />
+          <div class="shade"></div>
+        </div>
+        <div class="badge clay"><div><small>Opportunity status</small><b id="slideBadge">Verified Deals</b></div><a href="http://localhost:5173/deals">View →</a></div>
       </div>
-      <div class="catcard clay">
-        <img loading="lazy" src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Electrician at work" />
-        <div class="pad"><h3>Book services</h3><p>Local skills with clear prices. Request a quote and agree the scope in writing.</p><a href="http://localhost:5173/services">Browse services →</a></div>
-      </div>
-      <div class="catcard clay">
-        <img loading="lazy" src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Fresh produce at a market stall" />
-        <div class="pad"><h3>Deals &amp; goods</h3><p>Everyday goods with visible prices and seller-authorised broker commissions.</p><a href="http://localhost:5173/deals">Browse deals →</a></div>
+      <div class="dots">
+        <div class="row" id="slideDots" role="tablist" aria-label="Slides"></div>
+        <div class="nav2">
+          <button class="clay" id="prevSlide" aria-label="Previous slide">←</button>
+          <button class="clay" id="nextSlide" aria-label="Next slide">→</button>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="sec" id="explore" aria-label="Nearby opportunities" style="position:relative; z-index:1;"><h2 class="gold-grad">Explore near you</h2><p class="lead">Live from the marketplace — pay and commission terms always visible.</p>
-    <%= if listings == [] do %>
-      <div class="empty"><p>No published listings yet — check back soon, or be the first to post a need.</p></div>
+  <!-- FEATURED DEALS -->
+  <section class="sec" aria-label="Featured deals"><div class="sechead"><div><h2 class="gold-grad">Featured Marketplace Deals</h2><p class="lead">Hand-picked high conversion opportunities</p></div><a href="http://localhost:5173/deals">View All →</a></div>
+    <%= if featured_deals == [] do %>
+      <div class="empty"><p>No published listings yet — check back soon.</p></div>
     <% else %>
-      <div class="listgrid">
-      <%= for l <- listings do %>
-        <div class="job clay">
-          <img loading="lazy" alt="" src="<%= case l["kind"] do
-            "service" -> "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=50"
-            "deal" -> "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=300&q=50"
-            _ -> "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=300&q=50"
-          end %>" />
-          <div class="b">
-            <b class="t"><%= l["title"] %></b>
-            <small><%= l["coarse_location"] || "Uganda" %> · <%= l["kind"] %></small>
-            <p class="pay">UGX <%= (l["pay_amount_minor"] || 0) |> trunc() |> Integer.to_string() |> String.replace(~r/\B(?=(\d{3})+(?!\d))/, ",") %> total</p>
-          </div>
+    <div class="hscroll">
+      <%= for deal <- featured_deals do %>
+        <div class="deal clay">
+          <div><div class="im">
+            <img loading="lazy" alt="" src="<%= case deal["kind"] do "service" -> "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=50"; "deal" -> "https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=600&q=50"; _ -> "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=50" end %>" />
+            <span class="cat"><%= deal["kind"] %></span>
+          </div><div class="pad"><h3><%= deal["title"] %></h3><span class="price">UGX <%= (deal["pay_amount_minor"] || 0) |> trunc() %></span></div></div>
+          <div class="foot2"><a href="http://localhost:5173/deals">View Details</a></div>
         </div>
       <% end %>
-      </div>
+    </div>
     <% end %>
   </section>
 
-  <section class="sec" aria-label="How it works" style="position:relative; z-index:1;"><h2 class="gold-grad">How Sure Sente works</h2><p class="lead">Browse freely. An account is only needed when you act.</p>
-    <div class="steps">
-      <div class="step clay"><span class="n">1</span><h3>Browse &amp; compare</h3><p>Search work, services and deals with pay, schedules and terms visible before signup.</p></div>
-      <div class="step clay"><span class="n">2</span><h3>Apply or book</h3><p>Create an account to apply, message, quote or book. Every agreement is confirmed in writing.</p></div>
-      <div class="step clay"><span class="n">3</span><h3>Work &amp; earn</h3><p>Complete the job and get paid directly. Brokers earn only on consented, attributed introductions.</p></div>
+  <!-- COMMISSIONS + GIGS -->
+  <section class="sec" aria-label="Commissions and gigs"><div class="duo">
+    <div class="panel clay"><div class="ph"><h3>⚡ High Commission Deals</h3><a href="http://localhost:5173/deals">Explore</a></div>
+      <%= if commission_opps == [] do %><div class="empty"><p>Seller-authorised broker commissions appear here once published.</p></div>
+      <% else %><%= for opp <- commission_opps do %>
+        <div class="opprow"><div><p><%= opp["title"] %></p><small>Earn up to <b><%= opp["commission_bps"] && "#{div(opp["commission_bps"], 100)}%" || "agreed rate" %></b> per sale</small></div><a class="mini gold-btn" href="http://localhost:5173/auth">Promote</a></div>
+      <% end %><% end %>
     </div>
-  </section>
-
-  <section class="trust clay" aria-label="Trust and safety" style="position:relative; z-index:1;">
-    <img loading="lazy" src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&amp;fit=crop&amp;w=800&amp;q=60" alt="Two people shaking hands" />
-    <div><h2 class="gold-grad">Fair terms, in writing</h2>
-      <ul>
-        <li>No wallet, no escrow — buyers pay workers and sellers directly.</li>
-        <li>Broker commission needs seller approval, buyer consent and accepted attribution.</li>
-        <li>Private contacts, documents and messages stay private and permissioned.</li>
-        <li>Disputes and appeals are handled with evidence and audit history.</li>
-      </ul>
+    <div class="panel clay"><div class="ph"><h3>💼 Available Quick Gigs</h3><a href="http://localhost:5173/find">View All</a></div>
+      <%= if active_gigs == [] do %><div class="empty"><p>No gigs yet — check back soon.</p></div>
+      <% else %><%= for gig <- active_gigs do %>
+        <div class="opprow"><div><p><%= gig["title"] %></p><small style="color:var(--gold);font-weight:700;">UGX <%= (gig["pay_amount_minor"] || 0) |> trunc() %></small></div><a class="mini btn ghost" href="http://localhost:5173/auth">Apply</a></div>
+      <% end %><% end %>
     </div>
-  </section>
-
-  <div class="apibar">Developers: API live at <b>/api/v1</b> — <a href="/api/v1/categories">/categories</a> · <a href="/api/v1/listings">/listings</a>. Full interactive app: <a href="http://localhost:5173">localhost:5173</a>.</div>
+  </div></section>
 </div>
 
 <footer class="foot">
   <a href="http://localhost:5173/help">Terms</a>|<a href="http://localhost:5173/help">Privacy</a>|<a href="http://localhost:5173/help">Help</a>
-  <p class="credit">Photos: Unsplash (free to use). Illustrative listing photos; listing details come from the live marketplace.</p>
 </footer>
+<script>
+(function(){
+  var slides=[
+    {tag:"Instant Liquidity",headline:"Find Deals. Earn More. Move Money Forward.",desc:"Discover quick gigs, earn commissions, and buy or sell products in one marketplace built around opportunity.",primary:["Explore Deals","http://localhost:5173/deals"],secondary:["Start Earning","http://localhost:5173/auth"],badge:"Verified Deals"},
+    {tag:"Earn Commissions",headline:"Connect Buyers. Earn Fast Rewards.",desc:"Promote verified luxury items and business deals to earn instant commissions directly to your wallet.",primary:["View Commissions","http://localhost:5173/deals"],secondary:["Post an Item","http://localhost:5173/auth"],badge:"Up to 15% Comm."},
+    {tag:"Quick Gigs",headline:"High-Paying Short-Term Opportunities.",desc:"Access curated tasks, consulting gigs, and local quick sales right from your mobile device.",primary:["Find Gigs","http://localhost:5173/find"],secondary:["Start Earning","http://localhost:5173/auth"],badge:"Immediate Payout"}
+  ];
+  var i=0,paused=false,timer=null;
+  var imgs=document.querySelectorAll("#slideFrame img.slide");
+  var dots=document.getElementById("slideDots");
+  function render(){
+    var s=slides[i];
+    document.getElementById("slideTag").textContent=s.tag;
+    document.getElementById("slideHeadline").textContent=s.headline;
+    document.getElementById("slideDesc").textContent=s.desc;
+    var p=document.getElementById("slidePrimary"); p.textContent=s.primary[0]+" →"; p.href=s.primary[1];
+    var q=document.getElementById("slideSecondary"); q.textContent=s.secondary[0]; q.href=s.secondary[1];
+    document.getElementById("slideBadge").textContent=s.badge;
+    imgs.forEach(function(el,k){el.classList.toggle("on",k===i);});
+    dots.querySelectorAll("button").forEach(function(el,k){el.classList.toggle("on",k===i);});
+  }
+  slides.forEach(function(_,k){var b=document.createElement("button");b.className="dotb"+(k===0?" on":"");b.setAttribute("aria-label","Go to slide "+(k+1));b.onclick=function(){i=k;render();restart();};dots.appendChild(b);});
+  function next(){i=(i+1)%slides.length;render();}
+  function prev(){i=(i-1+slides.length)%slides.length;render();}
+  function restart(){if(timer)clearInterval(timer);timer=setInterval(function(){if(!paused)next();},6000);}
+  document.getElementById("nextSlide").onclick=function(){next();restart();};
+  document.getElementById("prevSlide").onclick=function(){prev();restart();};
+  var hero=document.getElementById("hero");
+  hero.addEventListener("mouseenter",function(){paused=true;});
+  hero.addEventListener("mouseleave",function(){paused=false;});
+  restart();
+})();
+</script>
 </body>
 </html>

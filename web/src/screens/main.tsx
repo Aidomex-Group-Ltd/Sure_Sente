@@ -20,41 +20,52 @@ function useListings(kind?: string) {
   return { rows, loading, error, load };
 }
 
-// Luxury hero (guest landing): claymorphic image card + rotating 3-slide
-// carousel. Auto-advances every 5s; dots are clickable (aria-pressed).
+// Hero at very top (mobile + desktop): dynamic promo carousel with
+// transparent claymorphism, pause-on-hover, dots + prev/next.
 const SLIDES = [
   {
-    tag: "Open now · Kampala",
-    title: "Work. Connect. Earn.",
-    subtitle: "Pay, schedule and scope are shown on every listing before you sign up.",
-    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=70",
-    alt: "Artisan crew on a building site",
+    tag: "Instant Liquidity",
+    title: "Find Deals. Earn More. Move Money Forward.",
+    subtitle: "Discover quick gigs, earn commissions, and buy or sell products in one marketplace built around opportunity.",
+    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=70",
+    alt: "Business professional",
+    badge: "Verified Deals",
+    primary: { label: "Explore Deals", to: "/deals" },
+    secondary: { label: "Start Earning", to: "/earnings" },
   },
   {
-    tag: "Apply in minutes",
-    title: "Apply from any phone",
-    subtitle: "No CV needed — answer with your skills, area and availability.",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=70",
-    alt: "Electrician at work",
+    tag: "Earn Commissions",
+    title: "Connect Buyers. Earn Fast Rewards.",
+    subtitle: "Promote verified items and business deals to earn instant commissions directly to your wallet.",
+    image: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=1200&q=70",
+    alt: "Handshake deal",
+    badge: "Up to 15% Comm.",
+    primary: { label: "View Commissions", to: "/broker" },
+    secondary: { label: "Post an Item", to: "/post" },
   },
   {
-    tag: "Fair brokerage",
-    title: "Commissions, in writing",
-    subtitle: "Seller-approved terms, buyer consent and recorded attribution for every introduction.",
-    image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=70",
-    alt: "Two people shaking hands",
+    tag: "Quick Gigs",
+    title: "High-Paying Short-Term Opportunities.",
+    subtitle: "Access curated tasks, consulting gigs, and local quick sales right from your mobile device.",
+    image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=70",
+    alt: "Team collaborating",
+    badge: "Immediate Payout",
+    primary: { label: "Find Gigs", to: "/find" },
+    secondary: { label: "Start Earning", to: "/earnings" },
   },
 ];
 
 function HeroLux() {
   const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
   useEffect(() => {
-    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
+    if (paused) return;
+    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 6000);
     return () => clearInterval(t);
-  }, []);
+  }, [paused]);
   const s = SLIDES[i];
   return (
-    <section className="luxhero" aria-label="Sure Sente highlights">
+    <section className="luxhero" aria-label="Sure Sente highlights" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="blob glow-em" style={{ width: 240, height: 240, top: -50, left: -70 }} />
       <div className="blob glow-gold" style={{ width: 220, height: 220, bottom: -60, right: -50 }} />
       <div className="luxgrid">
@@ -64,21 +75,31 @@ function HeroLux() {
         </div>
         <h1 key={"t" + i} className="gold-gradient-text slide-fade">{s.title}</h1>
         <p key={"s" + i} className="muted slide-fade" style={{ maxWidth: "46ch", fontSize: 17, marginTop: 0 }}>{s.subtitle}</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link className="btn primary" to={s.primary.to} style={{ flex: 1 }}>{s.primary.label} →</Link>
+          <Link className="btn secondary" to={s.secondary.to} style={{ flex: 1, textAlign: "center" }}>{s.secondary.label}</Link>
+        </div>
         <div>
           <div className="clay-card luximgcard">
-            <img key={i} src={s.image} alt={s.alt} loading="lazy" />
+            <img key={i} src={s.image} alt={s.alt} loading="eager" />
             <div className="clay-card luxoverlay">
-              <div><p className="tagchip" style={{ fontSize: 10, padding: "2px 10px", marginBottom: 2 }}>Live</p><p style={{ margin: 0, fontWeight: 700 }}>Listings refresh live</p></div>
-              <span className="tagchip" style={{ color: "#6EE7B7", borderColor: "rgba(110,231,183,.4)", fontSize: 12 }}>Pay shown upfront</span>
+              <div><p className="tagchip" style={{ fontSize: 10, padding: "2px 10px", marginBottom: 2 }}>Opportunity Status</p><p style={{ margin: 0, fontWeight: 700 }}>{s.badge}</p></div>
+              <Link className="tagchip" style={{ textDecoration: "none" }} to="/deals">View →</Link>
             </div>
           </div>
-          <div className="dots" role="group" aria-label="Carousel slides">
-            {SLIDES.map((_, idx) => (
-              <button key={idx} aria-label={`Show slide ${idx + 1}`} aria-pressed={idx === i} onClick={() => setI(idx)} />
-            ))}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14 }}>
+            <div className="dots" style={{ marginTop: 0 }} role="group" aria-label="Carousel slides">
+              {SLIDES.map((_, idx) => (
+                <button key={idx} aria-label={`Show slide ${idx + 1}`} aria-pressed={idx === i} onClick={() => setI(idx)} />
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn2" style={{ minHeight: 44, minWidth: 44, margin: 0 }} aria-label="Previous slide" onClick={() => setI((i - 1 + SLIDES.length) % SLIDES.length)}>‹</button>
+              <button className="btn2" style={{ minHeight: 44, minWidth: 44, margin: 0 }} aria-label="Next slide" onClick={() => setI((i + 1) % SLIDES.length)}>›</button>
+            </div>
           </div>
         </div>
-        <Link className="btn primary" to="/auth" style={{ width: "100%", marginTop: 4 }}>Join free →</Link>
+        <Link className="btn primary" to={token.get() ? "/earnings" : "/auth"} style={{ width: "100%", marginTop: 4 }}>Start Earning →</Link>
         <p style={{ textAlign: "center", margin: 0 }}><small className="muted">Browse first. Sign up only to apply or connect.</small></p>
       </div>
     </section>
@@ -118,9 +139,30 @@ export function Home() {
   const seeAll = tab === "deal" ? "/deals" : tab === "service" ? "/services" : "/find";
 
   if (!logged) {
+    const deals = rows.filter((l) => String((l as any).kind || "").includes("goods") || String((l as any).kind || "").includes("deal")).slice(0, 8);
+    const gigs = rows.filter((l) => String((l as any).kind || "").includes("work")).slice(0, 4);
     return (
       <Layout guest>
         <HeroLux />
+        <div className="secttl"><h2>Featured Marketplace Deals</h2><Link to="/deals">View All →</Link></div>
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8, scrollSnapType: "x mandatory" }}>
+          {(deals.length ? deals : rows.slice(0, 6)).map((l) => (
+            <div key={String(l.id)} className="clay-card" style={{ minWidth: 240, maxWidth: 260, borderRadius: 16, overflow: "hidden", scrollSnapAlign: "start" }}>
+              <div style={{ height: 120, background: "rgba(255,255,255,.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }} aria-hidden="true">▣</div>
+              <div style={{ padding: 12 }}>
+                <b style={{ display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{String((l as any).title || "Deal")}</b>
+                <p className="pay" style={{ margin: "4px 0" }}>{fmtUGX(Number((l as any).pay_amount_minor ?? (l as any).price_minor ?? 0))}</p>
+                <Link className="btn2" to={`/listings/${(l as any).id}`} style={{ width: "100%", textAlign: "center", minHeight: 40 }}>View Details</Link>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card"><h3>⚡ High Commission Deals</h3>
+          {gigs.slice(0, 3).map((l) => (
+            <div key={String(l.id)} className="lrow"><span className="lbody"><b>{String((l as any).title)}</b><small>Earn commission per sale</small></span><Link className="btn primary" style={{ minHeight: 40 }} to={`/listings/${(l as any).id}`}>Promote</Link></div>
+          ))}
+          <p><Link to="/broker">Explore →</Link></p>
+        </div>
         <ChipRow tab={tab} setTab={setTab} />
         <div className="secttl"><h2>Explore near you</h2><TownPill /></div>
         <div className="card" id="explore" ref={listRef}><States loading={loading} error={error} empty={!loading && !error && filtered.length === 0} onRetry={load}>
