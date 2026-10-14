@@ -77,7 +77,10 @@ defmodule Backend.MarketplaceTest do
     adult_dob = Date.utc_today() |> Date.add(-365 * 25) |> Date.to_iso8601()
 
     assert {:error, {:legal_gate, _}} =
-             Accounts.verify_code(phone, c3, %{"terms_accepted" => false, "date_of_birth" => adult_dob})
+             Accounts.verify_code(phone, c3, %{
+               "terms_accepted" => false,
+               "date_of_birth" => adult_dob
+             })
 
     {:ok, %{code: c4}} = Accounts.request_code(phone)
 
@@ -263,7 +266,9 @@ defmodule Backend.MarketplaceTest do
       })
 
     # Outcome by non-participant, and before attribution accepted (Q05/Q07).
-    assert {:error, :forbidden} = Brokerage.record_outcome(r1, outsider.id, "sold", [], 100, "UGX")
+    assert {:error, :forbidden} =
+             Brokerage.record_outcome(r1, outsider.id, "sold", [], 100, "UGX")
+
     assert {:error, :bad_state} = Brokerage.record_outcome(r1, s.id, "sold", [], 100, "UGX")
     {:ok, r1} = Brokerage.attribute(r1, s.id, "accept", nil)
     {:ok, claim} = Brokerage.record_outcome(r1, s.id, "sold", [], 3000, "UGX")

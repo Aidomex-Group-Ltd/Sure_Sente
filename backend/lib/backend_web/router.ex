@@ -25,6 +25,7 @@ defmodule BackendWeb.Router do
   scope "/", BackendWeb do
     pipe_through :web
     get "/", PageController, :home
+    get "/health", PageController, :health
   end
 
   scope "/api/v1", BackendWeb do

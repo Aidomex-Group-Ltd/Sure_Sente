@@ -1,0 +1,9 @@
+_build
+deps
+erl_crash.dump
+.git
+.env
+.env.*
+priv/uploads/*
+Dockerfile
+.dockerignore

@@ -22,7 +22,11 @@ config :backend, BackendWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: System.get_env("SECRET_KEY_BASE", "ojffeeG+Q/pXbfyTY6GjnQ2OCGj5GPJWiV536JG+BVhTh4TjmRsXbUEZcYcvtSjA"),
+  secret_key_base:
+    System.get_env(
+      "SECRET_KEY_BASE",
+      "ojffeeG+Q/pXbfyTY6GjnQ2OCGj5GPJWiV536JG+BVhTh4TjmRsXbUEZcYcvtSjA"
+    ),
   live_view: [signing_salt: System.get_env("LIVE_SIGNING_SALT", "dev-only-salt")],
   watchers: []
 

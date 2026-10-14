@@ -1,18 +1,23 @@
-# 12-API contract: invalid UUIDs return 404, never 400/500. phoenix_ecto
-# maps Ecto.Query.CastError to 400, so the project overrides it here.
-defimpl Plug.Exception, for: Ecto.Query.CastError do
-  def status(_), do: 404
-
-  def actions(_), do: []
-end
-
 defmodule BackendWeb.Plugs.CORS do
   import Plug.Conn
   def init(o), do: o
 
+  # Read at runtime so releases pick up the container env.
+  # Comma-separated list allowed; reflects the request origin when matched.
+  defp allowed_origin(conn) do
+    allowed =
+      System.get_env("CORS_ORIGIN", "http://localhost:5173")
+      |> String.split(",", trim: true)
+      |> Enum.map(&String.trim/1)
+
+    req = List.first(get_req_header(conn, "origin"))
+
+    if req in allowed, do: req, else: List.first(allowed)
+  end
+
   def call(c, _) do
     c
-    |> put_resp_header("access-control-allow-origin", "http://localhost:5173")
+    |> put_resp_header("access-control-allow-origin", allowed_origin(c))
     |> put_resp_header(
       "access-control-allow-headers",
       "authorization, content-type, idempotency-key"

@@ -5,9 +5,15 @@ defmodule BackendWeb.PageController do
   alias BackendWeb.Helpers
   import Ecto.Query
 
+  def health(conn, _params) do
+    json(conn, %{status: "ok", app: "sure-sente-backend"})
+  end
+
   def home(conn, _params) do
     {listings, _} = Catalog.list_published(%{}, 12, nil)
-    cats = Repo.all(from c in Category, where: c.gate_status != "closed" and c.pilot_enabled == true)
+
+    cats =
+      Repo.all(from c in Category, where: c.gate_status != "closed" and c.pilot_enabled == true)
 
     public = Enum.map(listings, &Helpers.public_listing/1)
     by_kind = Enum.group_by(public, & &1["kind"])

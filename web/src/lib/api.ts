@@ -1,4 +1,4 @@
-const BASE = "http://localhost:4000/api/v1";
+const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") || "http://localhost:4000/api/v1";
 export const token = {
   get: () => localStorage.getItem("sure_sente_token") || "",
   set: (t: string) => localStorage.setItem("sure_sente_token", t),

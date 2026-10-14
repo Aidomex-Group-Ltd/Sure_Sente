@@ -1,5 +1,6 @@
 defmodule BackendWeb.ApiController do
   use BackendWeb, :controller
+  action_fallback BackendWeb.FallbackController
   alias Backend.{Repo, Accounts, Catalog, Work, Brokerage, ChatOps}
 
   alias Backend.Schemas.{
