@@ -169,7 +169,7 @@ export function Home() {
           <>{filtered.slice(0, 6).map((l) => <ListingCard key={String(l.id)} l={l as any} area={area} />)}</>
         </States></div>
         <p><Link className="btn2" to={seeAll}>See all</Link></p>
-        <div className="foot"><Link to="/help#terms">Terms</Link> | <Link to="/help#privacy">Privacy</Link> | <Link to="/help">Help</Link></div>
+        <div className="foot"><Link to="/help#terms">Terms</Link> | <Link to="/help#privacy">Privacy</Link> | <Link to="/help">Help</Link><p><small className="muted">Sure Sente™ by Aidomex Group Ltd · © 2026 All rights reserved.</small></p></div>
       </Layout>
     );
   }

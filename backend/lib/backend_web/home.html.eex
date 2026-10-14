@@ -175,6 +175,7 @@ a:focus-visible, button:focus-visible { outline:3px solid var(--gold); outline-o
 
 <footer class="foot">
   <a href="http://localhost:5173/help">Terms</a>|<a href="http://localhost:5173/help">Privacy</a>|<a href="http://localhost:5173/help">Help</a>
+  <p style="font-size:12px;color:var(--muted);margin:8px 0 0;">Sure Sente™ is a trademark of Aidomex Group Ltd. © 2026 Aidomex Group Ltd. All rights reserved.</p>
 </footer>
 <script>
 (function(){

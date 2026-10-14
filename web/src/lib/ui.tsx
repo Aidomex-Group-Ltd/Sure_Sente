@@ -140,6 +140,13 @@ export function TownPill() {
     </span>
   );
 }
+export function BrandFooter() {
+  return (
+    <div className="foot">
+      <p style={{ margin: "8px 0 0" }}><small className="muted">Sure Sente™ is a trademark of Aidomex Group Ltd. © 2026 Aidomex Group Ltd. All rights reserved.</small></p>
+    </div>
+  );
+}
 export function Layout({ children, guest }: { children: ReactNode; guest?: boolean }) {
   const nav = useNavigate(); const loc = useLocation();
   const logged = !!token.get();
@@ -154,12 +161,13 @@ export function Layout({ children, guest }: { children: ReactNode; guest?: boole
   return (
     <div className="shell">
       <header className="topbar">
-        <span className="brandrow"><Logo /> <span>Sure Sente</span></span>
+        <span className="brandrow"><Logo /> <span>Sure Sente™</span></span>
         <span className="topsp" />
         {logged ? (<><TownPill /><Link className="btn primary" to="/earnings" style={{ minHeight: 44, margin: 0 }}>Start Earning</Link><Link className="avatar" to="/me" aria-label="Profile">{name.slice(0, 1).toUpperCase()}</Link></>)
           : (<><Link className="btn primary" to="/auth" style={{ minHeight: 44, margin: 0 }}>Start Earning</Link></>)}
       </header>
       <main className="main">{children}</main>
+      <BrandFooter />
       <nav className="tabs" aria-label="Primary">
         <Link to="/" aria-current={cur("/")}><span className="g">⌂</span>Home</Link>
         <Link to="/find" aria-current={cur("/find")}><span className="g">⌕</span>Find</Link>
