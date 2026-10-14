@@ -94,23 +94,23 @@ export function AuthSheet() {
 export function Logo({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="14" cy="20" r="10" fill="none" stroke="#0C5C3C" strokeWidth="4" />
-      <circle cx="26" cy="20" r="10" fill="none" stroke="#059669" strokeWidth="4" />
-      <circle cx="20" cy="20" r="3.4" fill="#F59E0B" />
+      <circle cx="14" cy="20" r="10" fill="none" stroke="#D4AF37" strokeWidth="4" />
+      <circle cx="26" cy="20" r="10" fill="none" stroke="#0EA46A" strokeWidth="4" />
+      <circle cx="20" cy="20" r="3.4" fill="#F3E5AB" />
     </svg>
   );
 }
 export function HeroArt() {
   return (
     <svg viewBox="0 0 300 150" width="100%" height="120" role="img" aria-label="Artisan at work illustration">
-      <rect x="0" y="0" width="300" height="150" rx="18" fill="#E6F4EC" />
-      <circle cx="250" cy="30" r="18" fill="#FCD34D" />
-      <rect x="30" y="90" width="240" height="10" rx="5" fill="#0C5C3C" opacity=".25" />
-      <rect x="60" y="55" width="70" height="40" rx="8" fill="#0C5C3C" />
-      <circle cx="150" cy="48" r="14" fill="#F5C99B" />
-      <rect x="138" y="62" width="26" height="34" rx="8" fill="#1E3A5F" />
-      <rect x="180" y="70" width="60" height="26" rx="6" fill="#FFFDF8" stroke="#E9DFCC" />
-      <rect x="188" y="78" width="30" height="5" rx="2" fill="#059669" />
+      <rect x="0" y="0" width="300" height="150" rx="18" fill="rgba(255,255,255,.06)" />
+      <circle cx="250" cy="30" r="18" fill="#D4AF37" />
+      <rect x="30" y="90" width="240" height="10" rx="5" fill="#0EA46A" opacity=".3" />
+      <rect x="60" y="55" width="70" height="40" rx="8" fill="#0B3B24" stroke="rgba(212,175,55,.4)" />
+      <circle cx="150" cy="48" r="14" fill="#F3E5AB" />
+      <rect x="138" y="62" width="26" height="34" rx="8" fill="#0EA46A" />
+      <rect x="180" y="70" width="60" height="26" rx="6" fill="rgba(255,255,255,.10)" stroke="rgba(212,175,55,.35)" />
+      <rect x="188" y="78" width="30" height="5" rx="2" fill="#D4AF37" />
     </svg>
   );
 }
@@ -193,7 +193,7 @@ export function ListingCard({ l, area }: { l: Record<string, any>; area: string 
   return (
     <Link className="lrow" to={`/listings/${l.id}`} aria-label={String(l.title || "Listing")}>
       <span className="icochip" aria-hidden="true">{l.kind === "service" ? "✂" : l.kind === "goods" ? "▣" : l.kind === "deal" ? "▣" : "⚒"}</span>
-      <span className="lbody"><b>{String(l.title || "Opportunity")}</b><small>{loc}{ago ? ` · ${ago}` : ""}</small><br /><small style={{ color: "#0C5C3C", fontWeight: 700 }}>UGX {pay != null ? Number(pay).toLocaleString() : "—"} total</small></span>
+      <span className="lbody"><b>{String(l.title || "Opportunity")}</b><small>{loc}{ago ? ` · ${ago}` : ""}</small><br /><small className="pay">UGX {pay != null ? Number(pay).toLocaleString() : "—"} total</small></span>
       <span className="chev" aria-hidden="true">›</span>
     </Link>
   );

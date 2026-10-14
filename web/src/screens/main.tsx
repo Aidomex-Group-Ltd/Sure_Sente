@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { get, post, patch, token, queueDraft, online, fmtUGX, type Listing } from "../lib/api";
-import { Layout, States, PayLine, ListingCard, TownPill, HeroArt, Logo, requireAuth, townGet } from "../lib/ui";
+import { Layout, States, PayLine, ListingCard, TownPill, Logo, requireAuth, townGet } from "../lib/ui";
 
 function useListings(kind?: string) {
   const [rows, setRows] = useState<Listing[]>([]);
@@ -18,6 +18,71 @@ function useListings(kind?: string) {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [kind]);
   return { rows, loading, error, load };
+}
+
+// Luxury hero (guest landing): claymorphic image card + rotating 3-slide
+// carousel. Auto-advances every 5s; dots are clickable (aria-pressed).
+const SLIDES = [
+  {
+    tag: "Open now · Kampala",
+    title: "Work. Connect. Earn.",
+    subtitle: "Pay, schedule and scope are shown on every listing before you sign up.",
+    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=70",
+    alt: "Artisan crew on a building site",
+  },
+  {
+    tag: "Apply in minutes",
+    title: "Apply from any phone",
+    subtitle: "No CV needed — answer with your skills, area and availability.",
+    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=70",
+    alt: "Electrician at work",
+  },
+  {
+    tag: "Fair brokerage",
+    title: "Commissions, in writing",
+    subtitle: "Seller-approved terms, buyer consent and recorded attribution for every introduction.",
+    image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=70",
+    alt: "Two people shaking hands",
+  },
+];
+
+function HeroLux() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((p) => (p + 1) % SLIDES.length), 5000);
+    return () => clearInterval(t);
+  }, []);
+  const s = SLIDES[i];
+  return (
+    <section className="luxhero" aria-label="Sure Sente highlights">
+      <div className="blob glow-em" style={{ width: 240, height: 240, top: -50, left: -70 }} />
+      <div className="blob glow-gold" style={{ width: 220, height: 220, bottom: -60, right: -50 }} />
+      <div className="luxgrid">
+        <div key={i} className="slide-fade" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Logo />
+          <span className="tagchip">{s.tag}</span>
+        </div>
+        <h1 key={"t" + i} className="gold-gradient-text slide-fade">{s.title}</h1>
+        <p key={"s" + i} className="muted slide-fade" style={{ maxWidth: "46ch", fontSize: 17, marginTop: 0 }}>{s.subtitle}</p>
+        <div>
+          <div className="clay-card luximgcard">
+            <img key={i} src={s.image} alt={s.alt} loading="lazy" />
+            <div className="clay-card luxoverlay">
+              <div><p className="tagchip" style={{ fontSize: 10, padding: "2px 10px", marginBottom: 2 }}>Live</p><p style={{ margin: 0, fontWeight: 700 }}>Listings refresh live</p></div>
+              <span className="tagchip" style={{ color: "#6EE7B7", borderColor: "rgba(110,231,183,.4)", fontSize: 12 }}>Pay shown upfront</span>
+            </div>
+          </div>
+          <div className="dots" role="group" aria-label="Carousel slides">
+            {SLIDES.map((_, idx) => (
+              <button key={idx} aria-label={`Show slide ${idx + 1}`} aria-pressed={idx === i} onClick={() => setI(idx)} />
+            ))}
+          </div>
+        </div>
+        <Link className="btn primary" to="/auth" style={{ width: "100%", marginTop: 4 }}>Join free →</Link>
+        <p style={{ textAlign: "center", margin: 0 }}><small className="muted">Browse first. Sign up only to apply or connect.</small></p>
+      </div>
+    </section>
+  );
 }
 
 function ChipRow({ tab, setTab }: { tab: string; setTab: (t: string) => void }) {
@@ -55,17 +120,7 @@ export function Home() {
   if (!logged) {
     return (
       <Layout guest>
-        <div className="hero">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}><Logo /><b>Sure Sente</b></div>
-          <h1>Work. Connect. Earn.</h1>
-          <p className="muted">Find nearby work, offer your skills, or earn by introducing buyers.</p>
-          <HeroArt />
-          <Link className="btn primary" to="/auth" style={{ width: "100%" }}>Join free →</Link>
-          <p style={{ textAlign: "center" }}>
-            <a className="linklike" href="#explore" onClick={(e) => { e.preventDefault(); listRef.current?.scrollIntoView({ behavior: "smooth" }); }}>Explore opportunities</a>
-            <br /><small className="muted">Browse first. Sign up to apply or connect.</small>
-          </p>
-        </div>
+        <HeroLux />
         <ChipRow tab={tab} setTab={setTab} />
         <div className="secttl"><h2>Explore near you</h2><TownPill /></div>
         <div className="card" id="explore" ref={listRef}><States loading={loading} error={error} empty={!loading && !error && filtered.length === 0} onRetry={load}>
