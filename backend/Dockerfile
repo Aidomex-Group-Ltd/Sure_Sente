@@ -12,11 +12,11 @@ RUN mix compile && mix release
 
 # ---- runtime ----
 FROM alpine:3.20.3 AS runtime
-RUN apk add --no-cache libstdc++ openssl ncurses-libs libgcc && adduser -D -h /app appuser
+RUN apk add --no-cache libstdc++ openssl ncurses-libs libgcc wget && adduser -D -h /app appuser
 WORKDIR /app
 USER appuser
 COPY --from=builder --chown=appuser /app/_build/prod/rel/backend ./
 ENV PHX_SERVER=true MIX_ENV=prod
 EXPOSE 4000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD wget -qO- http://127.0.0.1:4000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD sh -c 'wget -qO- http://127.0.0.1:${PORT:-4000}/health || exit 1'
 CMD ["bin/backend", "start"]

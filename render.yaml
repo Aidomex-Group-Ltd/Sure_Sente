@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: sure-sente-api
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    preDeployCommand: /app/bin/backend eval "Backend.Release.migrate()"
+    envVars:
+      - key: MIX_ENV
+        value: prod
+      - key: PHX_SERVER
+        value: "true"
+      - key: PHX_HOST
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY_BASE
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: no-reply@suresente.space
+      - key: APP_URL
+        value: https://www.suresente.space
+      - key: PAYMENT_PROVIDER
+        value: mock
+      - key: YO_API_URL
+        value: https://sandbox.yo.co.ug/api
+      - key: POOL_SIZE
+        value: "10"
+      # PORT is injected automatically by Render (default 10000).
+      # Do NOT set it here. config/runtime.exs already reads $PORT.
